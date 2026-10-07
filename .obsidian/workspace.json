@@ -1,0 +1,215 @@
+{
+  "main": {
+    "id": "bab70da481f0de05",
+    "type": "split",
+    "children": [
+      {
+        "id": "bb224ff298068b4d",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "9677dff6cb11d8e5",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Docs/To-Do-List.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "To-Do-List"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "3441d18095241b16",
+    "type": "split",
+    "children": [
+      {
+        "id": "427cd29c3fe7bc5c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "383f001119cfd7ba",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorador de arquivos"
+            }
+          },
+          {
+            "id": "44e1b4cbcd142b1c",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Procurar"
+            }
+          },
+          {
+            "id": "dbb2857a64c5e39a",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "Marcadores"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "701e8ccfd03f6681",
+    "type": "split",
+    "children": [
+      {
+        "id": "5d79822a5c574399",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "6c341e4e15c58840",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Docs/To-Do-List.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Links inversos"
+            }
+          },
+          {
+            "id": "a324dc6b5f7f67b7",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Docs/To-Do-List.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Links de saída"
+            }
+          },
+          {
+            "id": "1504d3e4c42dc3d0",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Etiquetas"
+            }
+          },
+          {
+            "id": "1e52532a89b77680",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Todas as propriedades"
+            }
+          },
+          {
+            "id": "93cf278f6d57d916",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Docs/To-Do-List.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Sumário"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Abrir a troca rápida": false,
+      "graph:Abrir visualização em gráfico": false,
+      "canvas:Criar novo canvas": false,
+      "daily-notes:Abrir a nota de hoje": false,
+      "templates:Inserir modelo": false,
+      "command-palette:Abrir paleta de comandos": false,
+      "bases:Criar nova base": false
+    }
+  },
+  "active": "9677dff6cb11d8e5",
+  "lastOpenFiles": [
+    "src/App.css",
+    "src/game/App.css",
+    "public/assets/png/retina/ui/menu/title_pirate_battle.png",
+    "public/assets/png/retina/ui/menu/button_secondary_pressed.png",
+    "public/assets/png/retina/ui/menu/button_secondary_normal.png",
+    "public/assets/png/retina/ui/menu/panel_menu.png",
+    "public/assets/png/retina/ui/menu/button_primary_pressed.png",
+    "public/assets/png/retina/ui/menu/button_primary_normal.png",
+    "public/assets/png/retina/ui/controls/icon_turn_right.png",
+    "public/assets/png/retina/ui/menu/button_primary_hover.png",
+    "public/assets/png/retina/ui/menu/button_primary_disabled.png",
+    "public/assets/png/retina/ui/controls/icon_turn_left.png",
+    "public/assets/png/retina/ui/menu",
+    "public/assets/png/retina/ui/hud",
+    "public/assets/png/retina/ui/controls",
+    "public/assets/png/default/ui/hud",
+    "public/assets/png/default/ui/menu",
+    "public/assets/png/default/ui/controls",
+    "public/assets/png/retina/effects",
+    "public/assets/png/retina/ui",
+    "public/assets/png/retina/tiles"
+  ]
+}

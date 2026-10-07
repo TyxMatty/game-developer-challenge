@@ -5,21 +5,21 @@ Matty aqui! Este é o plano focado no Desafio Pirate Battle, com base no README 
 ---
 
 ## O que já temos (Nossa Base):
-- [ ] Setup do projeto (React, TypeScript, Vite).
-- [ ] Instalação das dependências (PixiJS, TanStack Query, Axios, MSW, Playwright).
+- [x] Setup do projeto (React, TypeScript, Vite).
+- [x] Instalação das dependências (PixiJS, TanStack Query, Axios, MSW, Playwright).
 
 ---
 
 ## Próximos Passos (Tarefas a Executar)
 
 ### Tarefa 1: Arquitetura Base e Jogo (Simulation Layer)
-- [ ] Separar a lógica de simulação em TypeScript puro do renderizador PixiJS.
-- [ ] Implementar ciclo de jogo (Update Loop) independente de taxa de quadros (Baseado em Tempo/Delta).
+- [x] Separar a lógica de simulação em TypeScript puro do renderizador PixiJS.
+- [x] Implementar ciclo de jogo (Update Loop) independente de taxa de quadros (Baseado em Tempo/Delta).
 - [ ] Gerenciamento centralizado de estado de combate.
 
 ### Tarefa 2: Renderização com PixiJS (View Layer)
-- [ ] Inicializar tela PixiJS dentro do React.
-- [ ] Carregador de Assets (Texturas e Spritesheets).
+- [x] Inicializar tela PixiJS dentro do React.
+- [x] Carregador de Assets (Texturas e Spritesheets).
 - [ ] Mapeamento do estado da simulação para os Sprites visuais do PixiJS.
 
 ### Tarefa 3: Gameplay e Controles
