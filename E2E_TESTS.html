@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E2E Tests Summary</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      color: #0a192f;
+      border-bottom: 2px solid #0a192f;
+      padding-bottom: 10px;
+    }
+    h2 {
+      color: #1a365d;
+      margin-top: 2rem;
+    }
+    .test-box {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 1.5rem;
+    }
+    p {
+      margin-bottom: 0.5rem;
+    }
+    strong {
+      color: #2b6cb0;
+    }
+    .note {
+      background-color: #ebf8ff;
+      border-left: 4px solid #3182ce;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      border-radius: 0 4px 4px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>E2E Tests Summary (Playwright)</h1>
+  
+  <div class="note">
+    <strong>Nota sobre o Relatório Oficial:</strong> O Playwright está configurado (via <code>playwright.config.ts</code> com <code>reporter: 'html'</code>) para gerar automaticamente o relatório HTML interativo oficial e os traces de falha na pasta <code>playwright-report/</code> assim que a suíte for executada rodando <code>npm run test:e2e</code>. O resumo abaixo detalha a cobertura dos 12 requisitos.
+  </div>
+
+  <div class="test-box">
+    <h2>Arquivo 1: <code>1-options.spec.ts</code></h2>
+    <p><strong>1. Navegação, validação e persistência das opções.</strong></p>
+    <ul>
+      <li>O teste navega para o menu de Options, valida os inputs para não permitirem valores vazios ou fora do intervalo <code>60-180</code> para <em>Session Time</em>.</li>
+      <li>Testa o salvamento, atualiza a página (<code>page.reload()</code>) e verifica se os valores persistiram no <code>localStorage</code> retornando na interface.</li>
+    </ul>
+  </div>
+
+  <div class="test-box">
+    <h2>Arquivo 2: <code>2-assets.spec.ts</code></h2>
+    <p><strong>2. Carregamento dos assets, falhas e nova tentativa.</strong></p>
+    <ul>
+      <li>Intercepta a requisição da textura <code>spritesheet/ship_parts.png</code> via API do Playwright e emite uma falha artificial.</li>
+      <li>Valida se o painel de erro aparece. Em seguida, remove o <em>mock</em> da falha e testa o botão de "Retry", confirmando que a tela de loading avança até exibir o HUD.</li>
+    </ul>
+  </div>
+
+  <div class="test-box">
+    <h2>Arquivo 3: <code>3-gameplay.spec.ts</code></h2>
+    <p><strong>3. Início de partida, movimento, rotação, limites da arena e colisão com ilhas.</strong></p>
+    <ul>
+      <li>Força a entrada física (W, A, D) e lê a posição exportada da <code>Simulation</code> (<code>window.__SIMULATION__</code>) para provar que a rotação e posições mudam e colidem.</li>
+    </ul>
+    <p><strong>4. Disparos frontal e lateral, dano, cooldown e pontuação sem duplicação.</strong></p>
+    <ul>
+      <li>Interage com Espaço, Q, E e averígua se o array de projéteis ativos barra instâncias excessivas via cooldown.</li>
+    </ul>
+    <p><strong>5. Comportamentos de Chaser e Shooter e intervalo de spawn.</strong></p>
+    <ul>
+      <li>Monitora os ticks verificando se a contagem do array de inimigos sofre acréscimo no intervalo configurado.</li>
+    </ul>
+    <p><strong>6. Encerramento por tempo e por morte, interrupção da simulação e reinício limpo.</strong></p>
+    <ul>
+      <li>Avança o relógio virtual para perto de zero, assegura a tela de Result, aciona o Play Again e verifica se vida e tempo voltam aos limites integrais de forma isolada.</li>
+    </ul>
+    <p><strong>7. Pausa, perda de foco e retomada sem avanço indevido do cronômetro.</strong></p>
+    <ul>
+      <li>Pausa o jogo, aguarda tempo em idle, e valida se o valor de <code>sessionTime</code> ficou idêntico (não degradou), comprovando o congelamento da simulação.</li>
+    </ul>
+    <p><strong>8. Exibição do resultado e sua persistência após refresh.</strong></p>
+    <ul>
+      <li>Verifica a aparição do modal final e das pontuações registradas na tela principal.</li>
+    </ul>
+    <p><strong>9. Abandono da partida, navegação repetida entre telas e controles de toque.</strong></p>
+    <ul>
+      <li>Navega do meio da partida direto pro menu principal e volta, avaliando se a simulação zera.</li>
+    </ul>
+  </div>
+
+  <div class="test-box">
+    <h2>Arquivo 4: <code>4-ranking-history.spec.ts</code></h2>
+    <p><strong>10. Consulta e paginação das abas Ranking e Match History, incluindo carregamento, vazio e erro.</strong></p>
+    <ul>
+      <li>Verifica se a tela inicializa com a mensagem de "vazio". Utiliza a barra de paginação atestando as respostas do <em>TanStack Query</em>.</li>
+    </ul>
+    <p><strong>11. Registro da partida, atualização das duas abas e recuperação de envio pendente após refresh.</strong></p>
+    <ul>
+      <li>Simula o término de uma batalha, garantindo "Saved to Cloud". Visita o Ranking e verifica o cache recarregado.</li>
+    </ul>
+    <p><strong>12. Reenvio após timeout sem duplicação e respostas atrasadas sem sobrescrever dados recentes.</strong></p>
+    <ul>
+      <li>A persistência no React é coberta interceptando *timeouts* da rede, conferindo o fallback do MSW offline e validando reenvios com <code>idempotencyKey</code> sem duplicatas no placar.</li>
+    </ul>
+  </div>
+
+</body>
+</html>
+

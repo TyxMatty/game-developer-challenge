@@ -31,17 +31,40 @@ export class Renderer {
     this.app = new PIXI.Application();
   }
 
-  async init(container: HTMLDivElement) {
+  async init(container: HTMLDivElement, onProgress?: (progress: number) => void) {
+    onProgress?.(0.1);
     await this.app.init({
       resizeTo: container,
       backgroundColor: 0x1099bb, 
       autoDensity: true,
       resolution: window.devicePixelRatio || 1,
     });
+    onProgress?.(0.2);
 
     container.appendChild(this.app.canvas);
 
-    const waterTexture = await PIXI.Assets.load('/assets/png/retina/tiles/tile_73.png');
+    const assetUrls = [
+      '/assets/png/retina/tiles/tile_73.png',
+      '/assets/png/default/ships/ship_1.png',
+      '/assets/png/default/ships/ship_3.png',
+      '/assets/png/default/ships/ship_5.png',
+      '/assets/png/default/ui/hud/enemy_health_frame.png',
+      '/assets/png/default/ui/hud/enemy_health_fill_red.png',
+      '/assets/png/default/ui/hud/enemy_health_fill_green.png',
+      '/assets/png/default/effects/explosion_1.png',
+      '/assets/png/default/effects/explosion_2.png',
+      '/assets/png/default/effects/explosion_3.png',
+    ];
+
+    let loaded = 0;
+    const stepLoad = async (url: string) => {
+      const tex = await PIXI.Assets.load(url);
+      loaded++;
+      onProgress?.(0.2 + (loaded / assetUrls.length) * 0.8);
+      return tex;
+    };
+
+    const waterTexture = await stepLoad(assetUrls[0]);
     const waterBg = new PIXI.TilingSprite({
       texture: waterTexture,
       width: this.app.screen.width,
@@ -55,16 +78,16 @@ export class Renderer {
       waterBg.height = this.app.screen.height;
     });
 
-    const shipTexture = await PIXI.Assets.load('/assets/png/default/ships/ship_1.png');
-    this.texChaser = await PIXI.Assets.load('/assets/png/default/ships/ship_3.png');
-    this.texShooter = await PIXI.Assets.load('/assets/png/default/ships/ship_5.png');
-    this.texEnemyHpFrame = await PIXI.Assets.load('/assets/png/default/ui/hud/enemy_health_frame.png');
-    this.texEnemyHpFill = await PIXI.Assets.load('/assets/png/default/ui/hud/enemy_health_fill_red.png');
-    this.texPlayerHpFill = await PIXI.Assets.load('/assets/png/default/ui/hud/enemy_health_fill_green.png');
+    const shipTexture = await stepLoad(assetUrls[1]);
+    this.texChaser = await stepLoad(assetUrls[2]);
+    this.texShooter = await stepLoad(assetUrls[3]);
+    this.texEnemyHpFrame = await stepLoad(assetUrls[4]);
+    this.texEnemyHpFill = await stepLoad(assetUrls[5]);
+    this.texPlayerHpFill = await stepLoad(assetUrls[6]);
     
-    this.texExplosions.push(await PIXI.Assets.load('/assets/png/default/effects/explosion_1.png'));
-    this.texExplosions.push(await PIXI.Assets.load('/assets/png/default/effects/explosion_2.png'));
-    this.texExplosions.push(await PIXI.Assets.load('/assets/png/default/effects/explosion_3.png'));
+    this.texExplosions.push(await stepLoad(assetUrls[7]));
+    this.texExplosions.push(await stepLoad(assetUrls[8]));
+    this.texExplosions.push(await stepLoad(assetUrls[9]));
 
     this.playerContainer = new PIXI.Container();
     this.playerSprite = new PIXI.Sprite(shipTexture);
@@ -72,7 +95,7 @@ export class Renderer {
     this.playerContainer.addChild(this.playerSprite);
     
     const hpContainer = new PIXI.Container();
-    hpContainer.name = 'hp_container';
+    hpContainer.label = 'hp_container';
     hpContainer.y = -50;
     hpContainer.scale.set(0.5);
     this.playerContainer.addChild(hpContainer);
@@ -82,12 +105,12 @@ export class Renderer {
     hpContainer.addChild(hpFrame);
     
     const hpFill = new PIXI.Sprite(this.texPlayerHpFill);
-    hpFill.name = 'hp_fill';
+    hpFill.label = 'hp_fill';
     hpFill.anchor.set(0.5);
     hpContainer.addChild(hpFill);
 
     const mask = new PIXI.Graphics();
-    mask.name = 'hp_mask';
+    mask.label = 'hp_mask';
     hpFill.mask = mask;
     hpContainer.addChild(mask);
 
@@ -140,8 +163,8 @@ export class Renderer {
     
     const maxHp = this.simulation.config?.player.maxHealth ?? 300;
       const pPercent = Math.max(0, this.simulation.player.health / maxHp);
-    const hpContainerP = this.playerContainer.getChildByName('hp_container') as PIXI.Container;
-    const pHpMask = hpContainerP?.getChildByName('hp_mask') as PIXI.Graphics;
+    const hpContainerP = this.playerContainer.getChildByLabel('hp_container') as PIXI.Container;
+    const pHpMask = hpContainerP?.getChildByLabel('hp_mask') as PIXI.Graphics;
     if (pHpMask) {
       pHpMask.clear();
       pHpMask.rect(-80, -20, 160 * pPercent, 40);
@@ -179,11 +202,11 @@ export class Renderer {
         container = new PIXI.Container();
         const shipSprite = new PIXI.Sprite(e.type === 'chaser' ? this.texChaser : this.texShooter);
         shipSprite.anchor.set(0.5);
-        shipSprite.name = 'ship';
+        shipSprite.label = 'ship';
         container.addChild(shipSprite);
         
         const hpContainer = new PIXI.Container();
-        hpContainer.name = 'hp_container';
+        hpContainer.label = 'hp_container';
         hpContainer.y = -50;
         hpContainer.scale.set(0.5);
         container.addChild(hpContainer);
@@ -193,12 +216,12 @@ export class Renderer {
         hpContainer.addChild(hpFrame);
 
         const hpFill = new PIXI.Sprite(this.texEnemyHpFill);
-        hpFill.name = 'hp_fill';
+        hpFill.label = 'hp_fill';
         hpFill.anchor.set(0.5);
         hpContainer.addChild(hpFill);
         
         const mask = new PIXI.Graphics();
-        mask.name = 'hp_mask';
+        mask.label = 'hp_mask';
         hpFill.mask = mask;
         hpContainer.addChild(mask);
 
@@ -209,16 +232,16 @@ export class Renderer {
       container.x = e.x;
       container.y = e.y;
       
-      const shipSprite = container.getChildByName('ship') as PIXI.Sprite;
+      const shipSprite = container.getChildByLabel('ship') as PIXI.Sprite;
       if (shipSprite) shipSprite.rotation = e.rotation + Math.PI;
 
       const maxHp = e.type === 'chaser' 
         ? (this.simulation.config?.enemy.chaser.health ?? 2) 
         : (this.simulation.config?.enemy.shooter.health ?? 3);
       const percent = Math.max(0, e.health / maxHp);
-      const hpContainer = container.getChildByName('hp_container') as PIXI.Container;
+      const hpContainer = container.getChildByLabel('hp_container') as PIXI.Container;
       if (hpContainer) {
-        const hpMask = hpContainer.getChildByName('hp_mask') as PIXI.Graphics;
+        const hpMask = hpContainer.getChildByLabel('hp_mask') as PIXI.Graphics;
         if (hpMask) {
           hpMask.clear();
           hpMask.rect(-80, -20, 160 * percent, 40);
@@ -256,7 +279,7 @@ export class Renderer {
     try {
       this.app.destroy(true, { children: true });
     } catch (e) {
-      console.warn("PixiJS destroy warning:", e);
+      // Ignora aviso interno do PixiJS v8 ao destruir container com resizeTo
     }
   }
 }

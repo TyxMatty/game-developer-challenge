@@ -29,22 +29,22 @@ Matty aqui! Este é o plano focado no Desafio Pirate Battle, com base no README 
 - [x] Sistema de Dano, Vida e Colisões (com as Ilhas e Limites da Arena).
 
 ### Tarefa 4: Interface e Menus (React Layer)
-- [ ] Menu Principal (Play, Options, Ranking, Match History).
-- [ ] Tela de Opções (Duração da Sessão, Spawn de Inimigos, Persistência Local).
-- [ ] HUD In-Game (Pontuação, Tempo Restante, Vida).
+- [x] Menu Principal (Play, Options, Ranking, Match History).
+- [x] Tela de Opções (Duração da Sessão, Spawn de Inimigos, Persistência Local).
+- [x] HUD In-Game (Pontuação, Tempo Restante, Vida).
 - [x] Tela de Resultados.
 
 ### Tarefa 5: Polimento Visual (Efeitos e Sprites Extras)
 - [x] Utilizar texturas extras da pasta /assets.
-- [ ] Implementar animações de explosões ao destruir navios.
+- [x] Implementar animações de explosões ao destruir navios.
 - [ ] Efeitos de água, fumaça ou rastro de balas.
 
 ### Tarefa 6: Mocking (MSW) e API (TanStack + Axios)
 - [ ] Configuração do MSW para simular /ranking e /history.
-- [ ] Integração com Axios e TanStack Query.
-- [ ] Cenários de Falha, Timeout e Lentidão simulados e tratados.
+- [x] Integração com Axios e TanStack Query.
+- [x] Cenários de Falha, Timeout e Lentidão simulados e tratados.
 
 ### Tarefa 7: Qualidade e Testes (Playwright)
-- [ ] Testes E2E dos Fluxos de Interface.
+- [x] Testes E2E dos Fluxos de Interface.
 - [ ] Testes de Gameplay e Regressão Visual.
-- [ ] Performance Profiling e Ajustes Finais.
+- [x] Performance Profiling e Ajustes Finais.

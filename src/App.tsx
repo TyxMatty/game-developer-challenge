@@ -1,62 +1,130 @@
-import { useState } from 'react';
-import GameCanvas  from './components/GameCanvas';
+import { useState, useCallback } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import MainMenu from './components/MainMenu';
+import GameCanvas from './components/GameCanvas';
+import Options from './components/Options';
+import Ranking from './components/Ranking';
+import MatchHistory from './components/MatchHistory';
+import ResultsModal from './components/ResultsModal';
+import { loadLocalConfig, type GameConfig } from './config/GameConfig';
+import { type MatchRecord } from './types/match';
+import { NetworkSimulator } from './components/NetworkSimulator';
 
-export type GameState = 'MENU' | 'PLAYING' | 'OPTIONS' | 'RESULTS';
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      refetchOnWindowFocus: true,
+    },
+  },
+});
+
+export type AppScreen = 'MENU' | 'PLAYING' | 'OPTIONS' | 'RANKING' | 'HISTORY' | 'RESULTS';
 
 export default function App() {
-  const [gameState, setGameState] = useState<GameState>('MENU');
-  
+  const [currentScreen, setCurrentScreen] = useState<AppScreen>('MENU');
+  const [previousScreen, setPreviousScreen] = useState<AppScreen>('MENU');
+
+  // Active match snapshot and result
+  const [activeConfigSnapshot, setActiveConfigSnapshot] = useState<GameConfig | null>(null);
+  const [completedMatch, setCompletedMatch] = useState<MatchRecord | null>(null);
+
+  const startNewMatch = useCallback(() => {
+    // Snapshot active config at the instant match begins
+    const snapshot = loadLocalConfig();
+    setActiveConfigSnapshot(snapshot);
+    setCompletedMatch(null);
+    setCurrentScreen('PLAYING');
+  }, []);
+
+  const handleGameOver = useCallback((record: MatchRecord) => {
+    setCompletedMatch(record);
+    setCurrentScreen('RESULTS');
+  }, []);
+
+  const handleQuitCombat = useCallback(() => {
+    // Leaving combat early = match abandoned. NOT registered in history or ranking.
+    setActiveConfigSnapshot(null);
+    setCompletedMatch(null);
+    setCurrentScreen('MENU');
+  }, []);
+
+  const openOptions = useCallback(() => {
+    setPreviousScreen(currentScreen);
+    setCurrentScreen('OPTIONS');
+  }, [currentScreen]);
+
+  const closeOptions = useCallback(() => {
+    setCurrentScreen(previousScreen === 'PLAYING' ? 'PLAYING' : 'MENU');
+  }, [previousScreen]);
+
   return (
-    <div style={{ width: '100vw', height: '100vh', backgroundColor: '#111', color: 'white', fontFamily: 'sans-serif', position: 'relative' }}>
-      
-      {gameState === 'MENU' && (
-        <div style={overlayStyle}>
-          <h1 style={{ fontSize: '4rem', textShadow: '4px 4px #000' }}>PIRATE BATTLE</h1>
-          <button style={btnStyle} onClick={() => setGameState('PLAYING')}>🕹️ Começar Batalha</button>
-          <button style={btnStyle} onClick={() => setGameState('OPTIONS')}>⚙️ Opções</button>
-          <button style={btnStyle} disabled>🏆 Ranking (Em breve)</button>
-        </div>
-      )}
+    <QueryClientProvider client={queryClient}>
+      <div
+        style={{
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: '#071626',
+          backgroundImage: 'url(/assets/ui_scene_background.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          color: '#ffffff',
+          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+          position: 'relative',
+          overflow: 'hidden',
+          userSelect: 'none',
+        }}
+      >
+        {/* Main Menu */}
+        {currentScreen === 'MENU' && (
+          <MainMenu
+            onPlay={startNewMatch}
+            onOptions={openOptions}
+            onRanking={() => setCurrentScreen('RANKING')}
+            onHistory={() => setCurrentScreen('HISTORY')}
+          />
+        )}
 
-      {gameState === 'OPTIONS' && (
-        <div style={overlayStyle}>
-          <h1>Opções do Jogo</h1>
-          <p>Aqui colocaremos sliders de dificuldade e tempo de sessão.</p>
-          <button style={btnStyle} onClick={() => setGameState('MENU')}>Voltar</button>
-        </div>
-      )}
+        {/* Combat Canvas */}
+        {currentScreen === 'PLAYING' && activeConfigSnapshot && (
+          <GameCanvas
+            config={activeConfigSnapshot}
+            onGameOver={handleGameOver}
+            onQuit={handleQuitCombat}
+            onOpenOptions={openOptions}
+          />
+        )}
 
-      {gameState === 'PLAYING' && (
-        <>
-          <GameCanvas onGameOver={() => setGameState('RESULTS')} />
-          <button 
-            style={{ position: 'absolute', top: 70, right: 20, zIndex: 10 }}
-            onClick={() => setGameState('RESULTS')}
-          >
-            Desistir
-          </button>
-        </>
-      )}
+        {/* Options Modal */}
+        {currentScreen === 'OPTIONS' && (
+          <Options onBack={closeOptions} />
+        )}
 
-      {gameState === 'RESULTS' && (
-        <div style={overlayStyle}>
-          <h1 style={{ color: '#ff3333' }}>Fim de Jogo!</h1>
-          <h2>Sua Pontuação: 0</h2>
-          <button style={btnStyle} onClick={() => setGameState('MENU')}>Voltar ao Menu Principal</button>
-        </div>
-      )}
-    </div>
+        {/* Ranking Modal */}
+        {currentScreen === 'RANKING' && (
+          <Ranking onBack={() => setCurrentScreen('MENU')} />
+        )}
+
+        {/* Match History Modal */}
+        {currentScreen === 'HISTORY' && (
+          <MatchHistory onBack={() => setCurrentScreen('MENU')} />
+        )}
+
+        {/* Match Results Modal */}
+        {currentScreen === 'RESULTS' && completedMatch && (
+          <ResultsModal
+            matchResult={completedMatch}
+            onPlayAgain={startNewMatch}
+            onMainMenu={() => {
+              setCompletedMatch(null);
+              setCurrentScreen('MENU');
+            }}
+          />
+        )}
+
+        {/* Network Mock Simulator Widget */}
+        <NetworkSimulator />
+      </div>
+    </QueryClientProvider>
   );
 }
-
-const overlayStyle: React.CSSProperties = {
-  position: 'absolute', inset: 0,
-  display: 'flex', flexDirection: 'column', 
-  alignItems: 'center', justifyContent: 'center',
-  zIndex: 20, gap: '1rem'
-};
-
-const btnStyle: React.CSSProperties = {
-  padding: '12px 24px', fontSize: '1.2rem', cursor: 'pointer',
-  backgroundColor: '#333', color: 'white', border: '2px solid #555', borderRadius: '8px'
-};
