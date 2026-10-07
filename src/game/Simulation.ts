@@ -8,13 +8,24 @@ export interface Island {
   id: number; x: number; y: number; radius: number;
 }
 
+import { type GameConfig, loadLocalConfig } from '../config/GameConfig';
+
 export class Simulation {
+  public config: GameConfig = loadLocalConfig();
   private lastTime: number = 0;
   private animationFrameId: number = 0;
   private isRunning: boolean = false;
+  
+  public sessionTime = this.config.sessionTime;
+  public score = 0;
+  public onStateChange?: (state: { health: number, maxHealth: number, time: number, score: number }) => void;
 
   public player = {
-    x: window.innerWidth / 2, y: window.innerHeight / 2, rotation: 0, speed: 0, maxSpeed: 200, turnSpeed: 2.5, health: 100,
+    x: window.innerWidth / 2, y: window.innerHeight / 2, rotation: 0, speed: 0, 
+    maxSpeed: this.config.player.speed, 
+    turnSpeed: this.config.player.turnSpeed, 
+    health: this.config.player.maxHealth, 
+    maxHealth: this.config.player.maxHealth,
   };
 
   public projectiles: Projectile[] = [];
@@ -22,7 +33,7 @@ export class Simulation {
 
   public enemies: Enemy[] = [];
   private nextEnemyId = 1;
-  private spawnTimer = 0; 
+  private spawnTimer = this.config.spawnInterval; 
 
   public islands: Island[] = []; // Ilhas
   private nextIslandId = 1;
@@ -92,7 +103,11 @@ export class Simulation {
   };
 
   private spawnProjectile(x: number, y: number, rotation: number, owner: 'player'|'enemy') {
-    this.projectiles.push({ id: this.nextProjId++, x, y, rotation, speed: 400, life: 2.0, owner });
+    let speed = this.config.projectiles.speed;
+    if (owner === 'enemy') {
+      speed = this.config.enemy.shooter.projectileSpeed;
+    }
+    this.projectiles.push({ id: this.nextProjId++, x, y, rotation, speed, life: this.config.projectiles.life, owner });
   }
 
   private spawnEnemy() {
@@ -119,10 +134,11 @@ export class Simulation {
     }
 
     const type = Math.random() > 0.5 ? 'chaser' : 'shooter';
+    const enemyConfig = this.config.enemy[type];
     this.enemies.push({
       id: this.nextEnemyId++, type, x: ex, y: ey, rotation: 0,
-      health: type === 'chaser' ? 2 : 3, 
-      speed: type === 'chaser' ? 140 : 80, 
+      health: enemyConfig.health, 
+      speed: enemyConfig.speed, 
       cooldown: 0
     });
   }
@@ -132,26 +148,9 @@ export class Simulation {
     // Agrupa o jogador e os inimigos numa mesma lista para facilitar
     const ships = [this.player, ...this.enemies];
 
+    // 1. Colisão Corpo-a-Corpo (Navio contra Navio)
     for (let i = 0; i < ships.length; i++) {
       const shipA = ships[i];
-      
-      // 1. Bater nas paredes invisíveis da arena
-      shipA.x = Math.max(30, Math.min(window.innerWidth - 30, shipA.x));
-      shipA.y = Math.max(30, Math.min(window.innerHeight - 30, shipA.y));
-
-      // 2. Bater e deslizar nas Ilhas
-      for (const island of this.islands) {
-        const dist = Math.hypot(shipA.x - island.x, shipA.y - island.y);
-        const minDist = island.radius + 20; // Raio da ilha + Raio do Barco (20)
-        
-        if (dist > 0 && dist < minDist) {
-          const overlap = minDist - dist;
-          shipA.x += ((shipA.x - island.x) / dist) * overlap;
-          shipA.y += ((shipA.y - island.y) / dist) * overlap;
-        }
-      }
-
-      // 3. Colisão Corpo-a-Corpo (Navio contra Navio)
       for (let j = i + 1; j < ships.length; j++) {
         const shipB = ships[j];
         const dist = Math.hypot(shipA.x - shipB.x, shipA.y - shipB.y);
@@ -170,17 +169,58 @@ export class Simulation {
         }
       }
     }
+
+    // 2. Resolver Paredes e Ilhas (Garante que ninguém fica fora da tela ou dentro de ilha)
+    for (let i = 0; i < ships.length; i++) {
+      const shipA = ships[i];
+
+      // Bater nas paredes invisíveis da arena
+      shipA.x = Math.max(30, Math.min(window.innerWidth - 30, shipA.x));
+      shipA.y = Math.max(30, Math.min(window.innerHeight - 30, shipA.y));
+
+      // Bater e deslizar nas Ilhas
+      for (const island of this.islands) {
+        const dist = Math.hypot(shipA.x - island.x, shipA.y - island.y);
+        const minDist = island.radius + 20; // Raio da ilha + Raio do Barco (20)
+        
+        if (dist > 0 && dist < minDist) {
+          const overlap = minDist - dist;
+          shipA.x += ((shipA.x - island.x) / dist) * overlap;
+          shipA.y += ((shipA.y - island.y) / dist) * overlap;
+        }
+      }
+    }
   }
 
     private update(deltaMs: number) {
     const dt = Math.min(deltaMs / 1000, 0.1); 
 
+    this.sessionTime -= dt;
+    if (this.sessionTime <= 0 || this.player.health <= 0) {
+      this.sessionTime = Math.max(0, this.sessionTime);
+      this.isRunning = false; 
+    }
+
+    if (this.onStateChange) {
+      this.onStateChange({
+        health: Math.max(0, this.player.health),
+        maxHealth: this.player.maxHealth,
+        time: this.sessionTime,
+        score: this.score
+      });
+    }
+
+    if (!this.isRunning) return;
+
     // ---- JOGADOR ----
     if (this.input.left) this.player.rotation -= this.player.turnSpeed * dt;
     if (this.input.right) this.player.rotation += this.player.turnSpeed * dt;
+    
     let thrust = 0;
+    // Restaurando W e S para o padrão
     if (this.input.up) thrust = 1;
     if (this.input.down) thrust = -0.5;
+    
     this.player.speed = thrust * this.player.maxSpeed;
     this.player.x += Math.sin(this.player.rotation) * this.player.speed * dt;
     this.player.y -= Math.cos(this.player.rotation) * this.player.speed * dt;
@@ -191,7 +231,7 @@ export class Simulation {
 
     if (this.input.shootFront && this.cooldowns.front <= 0) {
       this.spawnProjectile(this.player.x, this.player.y, this.player.rotation, 'player');
-      this.cooldowns.front = 0.5; 
+      this.cooldowns.front = this.config?.player.frontCooldown ?? 0.5; 
     }
     if (this.input.shootLeft && this.cooldowns.left <= 0) {
       const rot = this.player.rotation - (Math.PI / 2); 
@@ -199,7 +239,7 @@ export class Simulation {
       const offX = Math.cos(rot) * 20; const offY = Math.sin(rot) * 20;
       this.spawnProjectile(this.player.x + offX, this.player.y + offY, rot, 'player');
       this.spawnProjectile(this.player.x - offX, this.player.y - offY, rot, 'player');
-      this.cooldowns.left = 1.0; 
+      this.cooldowns.left = this.config?.player.sideCooldown ?? 1.0; 
     }
     if (this.input.shootRight && this.cooldowns.right <= 0) {
       const rot = this.player.rotation + (Math.PI / 2); 
@@ -207,14 +247,14 @@ export class Simulation {
       const offX = Math.cos(rot) * 20; const offY = Math.sin(rot) * 20;
       this.spawnProjectile(this.player.x + offX, this.player.y + offY, rot, 'player');
       this.spawnProjectile(this.player.x - offX, this.player.y - offY, rot, 'player');
-      this.cooldowns.right = 1.0; 
+      this.cooldowns.right = this.config?.player.sideCooldown ?? 1.0; 
     }
 
     // ---- INIMIGOS (IA e Spawn) ----
     this.spawnTimer -= dt;
-    if (this.spawnTimer <= 0) {
+    if (this.spawnTimer <= 0 && this.enemies.length < 50) {
       this.spawnEnemy();
-      this.spawnTimer = 4.0; 
+      this.spawnTimer = this.config.spawnInterval; 
     }
 
     for (let i = this.enemies.length - 1; i >= 0; i--) {
@@ -231,21 +271,22 @@ export class Simulation {
         
         // Colisão direta e morte do Kamikaze (Antes da física!)
         const kamikazeDist = Math.hypot(this.player.x - e.x, this.player.y - e.y);
-        if (kamikazeDist < 40) {
-          this.player.health -= 10;
+        if (kamikazeDist < this.config.enemy.chaser.kamikazeRadius) {
+          this.player.health -= this.config.enemy.chaser.damage;
           this.enemies.splice(i, 1);
           console.log("Tomou dano de Chaser! Vida:", this.player.health);
           continue; // Como ele explodiu, pulamos a física pra ele.
         }
       } else if (e.type === 'shooter') {
-        if (distance > 250) {
+        const range = this.config.enemy.shooter.range;
+        if (distance > range) {
           e.x += Math.sin(e.rotation) * e.speed * dt;
           e.y -= Math.cos(e.rotation) * e.speed * dt;
         }
         e.cooldown -= dt;
-        if (distance < 350 && e.cooldown <= 0) {
+        if (distance < range + 100 && e.cooldown <= 0) {
           this.spawnProjectile(e.x, e.y, e.rotation, 'enemy');
-          e.cooldown = 2.0; 
+          e.cooldown = this.config.enemy.shooter.cooldown; 
         }
       }
     }
@@ -282,17 +323,18 @@ export class Simulation {
         for (let j = this.enemies.length - 1; j >= 0; j--) {
           const e = this.enemies[j];
           if (Math.hypot(p.x - e.x, p.y - e.y) < 30) { 
-            e.health -= 1;
+            e.health -= this.config.player.damage;
             hit = true;
             if (e.health <= 0) {
-              this.enemies.splice(j, 1); 
+              this.enemies.splice(j, 1);
+              this.score += 10;
             }
             break;
           }
         }
       } else if (p.owner === 'enemy') {
         if (Math.hypot(p.x - this.player.x, p.y - this.player.y) < 30) {
-          this.player.health -= 5;
+          this.player.health -= this.config.enemy.shooter.damage;
           hit = true;
           console.log("Bala do inimigo acertou! Vida:", this.player.health);
         }

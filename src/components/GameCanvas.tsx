@@ -1,48 +1,62 @@
 // src/components/GameCanvas.tsx
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Simulation } from '../game/Simulation';
 import { Renderer } from '../game/Renderer';
+import HUD from './HUD';
+import { loadLocalConfig } from '../config/GameConfig';
 
-export function GameCanvas() {
-  // Referência para a div container do PixiJS
+interface GameProps {
+  onGameOver?: (score: number) => void;
+}
+
+export default function GameCanvas({ onGameOver }: GameProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const onGameOverRef = useRef(onGameOver);
+
+  useEffect(() => {
+    onGameOverRef.current = onGameOver;
+  }, [onGameOver]);
+
+  const [gameState, setGameState] = useState(() => {
+    const c = loadLocalConfig();
+    return { health: c.player.maxHealth, maxHealth: c.player.maxHealth, time: c.sessionTime, score: 0 };
+  });
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    let mounted = true;
-    let isInitialized = false;
-
     const simulation = new Simulation();
     const renderer = new Renderer(simulation);
+    let mounted = true;
+
+    simulation.onStateChange = (state) => {
+      if (!mounted) return;
+      setGameState(state);
+
+      if ((state.health <= 0 || state.time <= 0) && onGameOverRef.current) {
+        onGameOverRef.current(state.score);
+      }
+    };
 
     renderer.init(containerRef.current).then(() => {
-      // Se o componente foi desmontado no meio do carregamento, descarta esse PixiJS
       if (!mounted) {
         renderer.destroy();
         return;
       }
-      
-      isInitialized = true;
       simulation.start();
-    }).catch(err => {
-      console.error("Falha ao inicializar PixiJS:", err);
     });
 
     return () => {
       mounted = false;
-      simulation.stop();
-      if (isInitialized) {
-        renderer.destroy();
-      }
+      simulation.destroy();
+      renderer.destroy();
     };
   }, []);
 
-  // Div que vai acomodar o PixiJS
   return (
-    <div 
-      ref={containerRef} 
-      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000' }} 
-    />
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+      <HUD health={gameState.health} maxHealth={gameState.maxHealth} time={gameState.time} score={gameState.score} />
+    </div>
   );
 }

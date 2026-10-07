@@ -1,8 +1,6 @@
-// src/App.tsx
 import { useState } from 'react';
-import { GameCanvas } from './components/GameCanvas';
+import GameCanvas  from './components/GameCanvas';
 
-// os possíveis estados do jogo
 export type GameState = 'MENU' | 'PLAYING' | 'OPTIONS' | 'RESULTS';
 
 export default function App() {
@@ -11,7 +9,6 @@ export default function App() {
   return (
     <div style={{ width: '100vw', height: '100vh', backgroundColor: '#111', color: 'white', fontFamily: 'sans-serif', position: 'relative' }}>
       
-      {/* TELA DE MENU */}
       {gameState === 'MENU' && (
         <div style={overlayStyle}>
           <h1 style={{ fontSize: '4rem', textShadow: '4px 4px #000' }}>PIRATE BATTLE</h1>
@@ -21,7 +18,6 @@ export default function App() {
         </div>
       )}
 
-      {/* TELA DE OPÇÕES */}
       {gameState === 'OPTIONS' && (
         <div style={overlayStyle}>
           <h1>Opções do Jogo</h1>
@@ -30,21 +26,11 @@ export default function App() {
         </div>
       )}
 
-      {/* TELA DE GAMEPLAY (O jogo rodando de fato) */}
       {gameState === 'PLAYING' && (
         <>
-          {/* O componente GameCanvas faz uma instance  do PixiJS e a Simulação */}
-          <GameCanvas />
-          
-          {/* HUD: Heads-Up Display (Fica flutuando sobre o Canvas) */}
-          <div style={{ position: 'absolute', top: 20, left: 20, zIndex: 10, pointerEvents: 'none', textShadow: '2px 2px #000' }}>
-            <h2 style={{ margin: 0 }}>❤️ Vida: 100</h2>
-            <h2 style={{ margin: 0 }}>⏱️ Tempo: 60s</h2>
-            <h2 style={{ margin: 0 }}>🎯 Pontos: 0</h2>
-          </div>
-          
+          <GameCanvas onGameOver={() => setGameState('RESULTS')} />
           <button 
-            style={{ position: 'absolute', top: 20, right: 20, zIndex: 10 }}
+            style={{ position: 'absolute', top: 70, right: 20, zIndex: 10 }}
             onClick={() => setGameState('RESULTS')}
           >
             Desistir
@@ -52,7 +38,6 @@ export default function App() {
         </>
       )}
 
-      {/* TELA DE RESULTADOS */}
       {gameState === 'RESULTS' && (
         <div style={overlayStyle}>
           <h1 style={{ color: '#ff3333' }}>Fim de Jogo!</h1>
@@ -60,12 +45,10 @@ export default function App() {
           <button style={btnStyle} onClick={() => setGameState('MENU')}>Voltar ao Menu Principal</button>
         </div>
       )}
-
     </div>
   );
 }
 
-// Estilos básicos provisórios para organizar a tela
 const overlayStyle: React.CSSProperties = {
   position: 'absolute', inset: 0,
   display: 'flex', flexDirection: 'column', 

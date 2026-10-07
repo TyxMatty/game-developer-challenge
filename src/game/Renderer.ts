@@ -1,20 +1,30 @@
-// src/game/Renderer.ts
 import * as PIXI from 'pixi.js';
-import { Simulation, type Projectile, type Enemy } from './Simulation';
+import { Simulation } from './Simulation';
+
+interface Explosion {
+  x: number; y: number; age: number; sprite: PIXI.Sprite;
+}
 
 export class Renderer {
   public app: PIXI.Application;
   private simulation: Simulation;
   
-  private playerSprite!: PIXI.Sprite; 
-  private projectileSprites: Map<number, PIXI.Graphics> = new Map();
-  private enemySprites: Map<number, PIXI.Sprite> = new Map(); 
+  private playerContainer!: PIXI.Container; 
+  private playerSprite!: PIXI.Sprite;
   
-  // AQUI: Para não criar as ilhas dezenas de vezes, salvamos num array
+  private projectileSprites: Map<number, PIXI.Graphics> = new Map();
+  private enemyContainers: Map<number, PIXI.Container> = new Map(); 
+  
   private islandSprites: PIXI.Graphics[] = [];
 
   private texChaser!: PIXI.Texture;
   private texShooter!: PIXI.Texture;
+  private texEnemyHpFrame!: PIXI.Texture;
+  private texEnemyHpFill!: PIXI.Texture;
+  private texPlayerHpFill!: PIXI.Texture;
+  
+  private texExplosions: PIXI.Texture[] = [];
+  private activeExplosions: Explosion[] = [];
 
   constructor(simulation: Simulation) {
     this.simulation = simulation;
@@ -31,56 +41,120 @@ export class Renderer {
 
     container.appendChild(this.app.canvas);
 
+    const waterTexture = await PIXI.Assets.load('/assets/png/retina/tiles/tile_73.png');
+    const waterBg = new PIXI.TilingSprite({
+      texture: waterTexture,
+      width: this.app.screen.width,
+      height: this.app.screen.height
+    });
+    this.app.stage.addChild(waterBg);
+    
+    // Resize background when window resizes
+    this.app.renderer.on('resize', () => {
+      waterBg.width = this.app.screen.width;
+      waterBg.height = this.app.screen.height;
+    });
+
     const shipTexture = await PIXI.Assets.load('/assets/png/default/ships/ship_1.png');
     this.texChaser = await PIXI.Assets.load('/assets/png/default/ships/ship_3.png');
     this.texShooter = await PIXI.Assets.load('/assets/png/default/ships/ship_5.png');
+    this.texEnemyHpFrame = await PIXI.Assets.load('/assets/png/default/ui/hud/enemy_health_frame.png');
+    this.texEnemyHpFill = await PIXI.Assets.load('/assets/png/default/ui/hud/enemy_health_fill_red.png');
+    this.texPlayerHpFill = await PIXI.Assets.load('/assets/png/default/ui/hud/enemy_health_fill_green.png');
+    
+    this.texExplosions.push(await PIXI.Assets.load('/assets/png/default/effects/explosion_1.png'));
+    this.texExplosions.push(await PIXI.Assets.load('/assets/png/default/effects/explosion_2.png'));
+    this.texExplosions.push(await PIXI.Assets.load('/assets/png/default/effects/explosion_3.png'));
 
+    this.playerContainer = new PIXI.Container();
     this.playerSprite = new PIXI.Sprite(shipTexture);
     this.playerSprite.anchor.set(0.5); 
+    this.playerContainer.addChild(this.playerSprite);
     
-    this.app.stage.addChild(this.playerSprite);
+    const hpContainer = new PIXI.Container();
+    hpContainer.name = 'hp_container';
+    hpContainer.y = -50;
+    hpContainer.scale.set(0.5);
+    this.playerContainer.addChild(hpContainer);
+
+    const hpFrame = new PIXI.Sprite(this.texEnemyHpFrame);
+    hpFrame.anchor.set(0.5);
+    hpContainer.addChild(hpFrame);
+    
+    const hpFill = new PIXI.Sprite(this.texPlayerHpFill);
+    hpFill.name = 'hp_fill';
+    hpFill.anchor.set(0.5);
+    hpContainer.addChild(hpFill);
+
+    const mask = new PIXI.Graphics();
+    mask.name = 'hp_mask';
+    hpFill.mask = mask;
+    hpContainer.addChild(mask);
+
+    this.app.stage.addChild(this.playerContainer);
     this.app.ticker.add(this.render);
   }
+  
+  private spawnExplosion(x: number, y: number) {
+    const sprite = new PIXI.Sprite(this.texExplosions[0]);
+    sprite.anchor.set(0.5);
+    sprite.x = x;
+    sprite.y = y;
+    sprite.rotation = Math.random() * Math.PI * 2;
+    sprite.scale.set(0.8 + Math.random() * 0.4);
+    this.app.stage.addChild(sprite);
+    this.activeExplosions.push({ x, y, age: 0, sprite });
+  }
 
-  private createProjectileSprite(owner: 'player' | 'enemy'): PIXI.Graphics {
+  private createProjectileSprite(): PIXI.Graphics {
     const graphics = new PIXI.Graphics();
-    graphics.circle(0, 0, 4); 
-    graphics.fill({ color: owner === 'player' ? 0xffcc00 : 0xff3333 }); 
+    graphics.circle(0, 0, 5); 
+    graphics.fill({ color: 0x222222 }); 
+    graphics.circle(-2, -2, 2);
+    graphics.fill({ color: 0x888888 }); 
     return graphics;
   }
 
-  private render = () => {
-    // 0. Sincroniza Ilhas de Areia (Acontece 1 única vez)
-    if (this.islandSprites.length === 0 && this.simulation.islands.length > 0) {
+  private render = (ticker: PIXI.Ticker) => {
+    // 0. Sincroniza Ilhas
+    if (this.islandSprites.length !== this.simulation.islands.length) {
+      for (const g of this.islandSprites) this.app.stage.removeChild(g);
+      this.islandSprites = [];
       for (const island of this.simulation.islands) {
         const g = new PIXI.Graphics();
         g.circle(0, 0, island.radius);
-        g.fill({ color: 0xdbca9b }); // Cor de Areia (Sand)
+        g.fill({ color: 0x56a147 });
+          g.stroke({ color: 0xd9ba80, width: 8, alignment: 1 });
         g.x = island.x;
         g.y = island.y;
-        
-        // Coloca a ilha no layer mais de baixo possível (index 0)
-        this.app.stage.addChildAt(g, 0); 
+        this.app.stage.addChildAt(g, 1); 
         this.islandSprites.push(g);
       }
     }
 
-    // 1. Sincroniza o Navio Principal
-    if (this.playerSprite) {
-      this.playerSprite.x = this.simulation.player.x;
-      this.playerSprite.y = this.simulation.player.y;
-      // INVERTENDO O SPRITE: Adiciona 180 graus (Math.PI) visualmente, para manter a orientação correta do navio
-      this.playerSprite.rotation = this.simulation.player.rotation + Math.PI; 
+    // 1. Sincroniza Jogador
+    this.playerContainer.x = this.simulation.player.x;
+    this.playerContainer.y = this.simulation.player.y;
+    // Adicionamos Math.PI para inverter a frente do navio visualmente
+    this.playerSprite.rotation = this.simulation.player.rotation + Math.PI;
+    
+    const maxHp = this.simulation.config?.player.maxHealth ?? 300;
+      const pPercent = Math.max(0, this.simulation.player.health / maxHp);
+    const hpContainerP = this.playerContainer.getChildByName('hp_container') as PIXI.Container;
+    const pHpMask = hpContainerP?.getChildByName('hp_mask') as PIXI.Graphics;
+    if (pHpMask) {
+      pHpMask.clear();
+      pHpMask.rect(-80, -20, 160 * pPercent, 40);
+      pHpMask.fill({ color: 0xffffff }); 
     }
 
-    // 2. Sincroniza as Balas
+    // 2. Sincroniza Projéteis
     const currentProjIds = new Set<number>();
     for (const p of this.simulation.projectiles) {
       currentProjIds.add(p.id);
-
       let sprite = this.projectileSprites.get(p.id);
       if (!sprite) {
-        sprite = this.createProjectileSprite(p.owner);
+        sprite = this.createProjectileSprite();
         this.app.stage.addChild(sprite);
         this.projectileSprites.set(p.id, sprite);
       }
@@ -88,27 +162,7 @@ export class Renderer {
       sprite.y = p.y;
     }
 
-    // 3. Sincroniza Inimigos
-    const currentEnemyIds = new Set<number>();
-    for (const e of this.simulation.enemies) {
-      currentEnemyIds.add(e.id);
-
-      let sprite = this.enemySprites.get(e.id);
-      if (!sprite) {
-        sprite = new PIXI.Sprite(e.type === 'chaser' ? this.texChaser : this.texShooter);
-        sprite.anchor.set(0.5);
-        this.app.stage.addChild(sprite);
-        this.enemySprites.set(e.id, sprite);
-      }
-      
-      sprite.x = e.x;
-      sprite.y = e.y;
-      // INVERTENDO O SPRITE DO INIMIGO TAMBÉM.
-      sprite.rotation = e.rotation + Math.PI; 
-    }
-
-    // 4. Clean Up
-    for (const [id, sprite] of this.projectileSprites.entries()) {
+    for (const [id, sprite] of this.projectileSprites) {
       if (!currentProjIds.has(id)) {
         this.app.stage.removeChild(sprite);
         sprite.destroy();
@@ -116,22 +170,93 @@ export class Renderer {
       }
     }
 
-    for (const [id, sprite] of this.enemySprites.entries()) {
+    // 3. Sincroniza Inimigos
+    const currentEnemyIds = new Set<number>();
+    for (const e of this.simulation.enemies) {
+      currentEnemyIds.add(e.id);
+      let container = this.enemyContainers.get(e.id);
+      if (!container) {
+        container = new PIXI.Container();
+        const shipSprite = new PIXI.Sprite(e.type === 'chaser' ? this.texChaser : this.texShooter);
+        shipSprite.anchor.set(0.5);
+        shipSprite.name = 'ship';
+        container.addChild(shipSprite);
+        
+        const hpContainer = new PIXI.Container();
+        hpContainer.name = 'hp_container';
+        hpContainer.y = -50;
+        hpContainer.scale.set(0.5);
+        container.addChild(hpContainer);
+
+        const hpFrame = new PIXI.Sprite(this.texEnemyHpFrame);
+        hpFrame.anchor.set(0.5);
+        hpContainer.addChild(hpFrame);
+
+        const hpFill = new PIXI.Sprite(this.texEnemyHpFill);
+        hpFill.name = 'hp_fill';
+        hpFill.anchor.set(0.5);
+        hpContainer.addChild(hpFill);
+        
+        const mask = new PIXI.Graphics();
+        mask.name = 'hp_mask';
+        hpFill.mask = mask;
+        hpContainer.addChild(mask);
+
+        this.app.stage.addChild(container);
+        this.enemyContainers.set(e.id, container);
+      }
+      
+      container.x = e.x;
+      container.y = e.y;
+      
+      const shipSprite = container.getChildByName('ship') as PIXI.Sprite;
+      if (shipSprite) shipSprite.rotation = e.rotation + Math.PI;
+
+      const maxHp = e.type === 'chaser' 
+        ? (this.simulation.config?.enemy.chaser.health ?? 2) 
+        : (this.simulation.config?.enemy.shooter.health ?? 3);
+      const percent = Math.max(0, e.health / maxHp);
+      const hpContainer = container.getChildByName('hp_container') as PIXI.Container;
+      if (hpContainer) {
+        const hpMask = hpContainer.getChildByName('hp_mask') as PIXI.Graphics;
+        if (hpMask) {
+          hpMask.clear();
+          hpMask.rect(-80, -20, 160 * percent, 40);
+          hpMask.fill({ color: 0xffffff }); 
+        }
+      }
+    }
+
+    for (const [id, container] of this.enemyContainers) {
       if (!currentEnemyIds.has(id)) {
-        this.app.stage.removeChild(sprite);
-        sprite.destroy();
-        this.enemySprites.delete(id);
+        this.spawnExplosion(container.x, container.y);
+        this.app.stage.removeChild(container);
+        container.destroy({ children: true });
+        this.enemyContainers.delete(id);
+      }
+    }
+    
+    // 4. Sincroniza Explosões
+    for (let i = this.activeExplosions.length - 1; i >= 0; i--) {
+      const exp = this.activeExplosions[i];
+      exp.age += ticker.deltaMS;
+      
+      if (exp.age > 240) {
+        this.app.stage.removeChild(exp.sprite);
+        exp.sprite.destroy();
+        this.activeExplosions.splice(i, 1);
+      } else {
+        const frameIndex = Math.floor(exp.age / 80);
+        exp.sprite.texture = this.texExplosions[Math.min(frameIndex, 2)];
       }
     }
   }
 
   destroy() {
     try {
-      if (this.app) {
-        this.app.destroy({ removeView: true });
-      }
+      this.app.destroy(true, { children: true });
     } catch (e) {
-      console.warn("Ignorando erro de cleanup:", e);
+      console.warn("PixiJS destroy warning:", e);
     }
   }
 }

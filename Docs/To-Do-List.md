@@ -1,4 +1,4 @@
-﻿# EPEC (Jungle Gaming Edition): Plano de Desenvolvimento e Divisão de Tarefas
+# EPEC (Jungle Gaming Edition): Plano de Desenvolvimento e Divisão de Tarefas
 
 Matty aqui! Este é o plano focado no Desafio Pirate Battle, com base no README do teste e utilizando os mesmos princípios modulares e escaláveis que eu sigo.
 
@@ -32,10 +32,10 @@ Matty aqui! Este é o plano focado no Desafio Pirate Battle, com base no README 
 - [ ] Menu Principal (Play, Options, Ranking, Match History).
 - [ ] Tela de Opções (Duração da Sessão, Spawn de Inimigos, Persistência Local).
 - [ ] HUD In-Game (Pontuação, Tempo Restante, Vida).
-- [ ] Tela de Resultados.
+- [x] Tela de Resultados.
 
 ### Tarefa 5: Polimento Visual (Efeitos e Sprites Extras)
-- [ ] Utilizar texturas extras da pasta /assets.
+- [x] Utilizar texturas extras da pasta /assets.
 - [ ] Implementar animações de explosões ao destruir navios.
 - [ ] Efeitos de água, fumaça ou rastro de balas.
 
