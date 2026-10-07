@@ -8,6 +8,7 @@ export function useRanking(params: RankingParams = {}) {
     queryFn: () => matchApi.getRanking(params),
     staleTime: 5000,
     refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
     retry: 2,
   });
 }
@@ -18,6 +19,7 @@ export function useMatchHistory(params: HistoryParams = {}) {
     queryFn: () => matchApi.getHistory(params),
     staleTime: 5000,
     refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
     retry: 2,
   });
 }

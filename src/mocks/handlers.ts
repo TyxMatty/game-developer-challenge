@@ -48,11 +48,6 @@ async function applyScenarioEffects(method: 'GET' | 'POST') {
     return HttpResponse.error();
   }
   
-  if (scenario === 'timeout_match_post' && method === 'POST') {
-    await delay(5000);
-    throw new HttpResponse(null, { status: 504, statusText: 'Gateway Timeout' });
-  }
-
   if (scenario === 'slow_variable') {
     const randomDelay = Math.floor(Math.random() * 2000) + 1000; // 1s to 3s
     await delay(randomDelay);
@@ -158,9 +153,6 @@ export const handlers = [
 
   // 3. Register completed match
   http.post('/api/match', async ({ request }) => {
-    const errorResponse = await applyScenarioEffects('POST');
-    if (errorResponse) return errorResponse;
-
     const matchData = (await request.json()) as MatchRecord;
 
     if (!matchData || !matchData.id) {
@@ -174,8 +166,29 @@ export const handlers = [
       return HttpResponse.json(existing, { status: 200 });
     }
 
-    stored.push(matchData);
-    saveStoredMatches(stored);
+    if (getScenario() === 'timeout_match_post') {
+      stored.push(matchData);
+      saveStoredMatches(stored);
+      try {
+        localStorage.setItem('pirate_last_completed_match', JSON.stringify(matchData));
+      } catch (e) {
+        console.warn('Failed to save last completed match:', e);
+      }
+      await delay(6000);
+      return HttpResponse.json(matchData, { status: 201 });
+    }
+
+    const errorResponse = await applyScenarioEffects('POST');
+    if (errorResponse) return errorResponse;
+
+    const latest = getStoredMatches();
+    const duplicate = latest.find(m => m.id === matchData.id);
+    if (duplicate) {
+      return HttpResponse.json(duplicate, { status: 200 });
+    }
+
+    latest.push(matchData);
+    saveStoredMatches(latest);
 
     try {
       localStorage.setItem('pirate_last_completed_match', JSON.stringify(matchData));

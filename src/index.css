@@ -33,3 +33,21 @@ button:focus-visible,
     -webkit-tap-highlight-color: transparent;
   }
 }
+
+@media (max-width: 500px) {
+  .mobile-touch-controls {
+    --control-size: 48px !important;
+    --control-gap: 6px !important;
+    --control-offset: 12px !important;
+    --control-icon-size: 25px !important;
+  }
+}
+
+@media (max-width: 350px) {
+  .mobile-touch-controls {
+    --control-size: 42px !important;
+    --control-gap: 4px !important;
+    --control-offset: 8px !important;
+    --control-icon-size: 22px !important;
+  }
+}

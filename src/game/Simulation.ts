@@ -58,6 +58,9 @@ export class Simulation {
   public enemies: Enemy[] = [];
   private nextEnemyId = 1;
   private spawnTimer: number;
+  private lastPublishedTime = Number.NaN;
+  private lastPublishedHealth = Number.NaN;
+  private lastPublishedScore = Number.NaN;
 
   public islands: Island[] = [];
   private nextIslandId = 1;
@@ -125,22 +128,58 @@ export class Simulation {
   private onKeyDown = (e: KeyboardEvent) => {
     // Only capture keys when active gameplay context is running and not paused
     if (!this.isRunning || this.isPaused) return;
-    this.handleKey(e.code, true);
+    this.handleKey(e.code, e.key, true);
   };
 
   private onKeyUp = (e: KeyboardEvent) => {
     if (!this.isRunning || this.isPaused) return;
-    this.handleKey(e.code, false);
+    this.handleKey(e.code, e.key, false);
   };
 
-  private handleKey(code: string, isPressed: boolean) {
-    if (code === 'KeyW' || code === 'ArrowUp') this.input.up = isPressed;
-    if (code === 'KeyS' || code === 'ArrowDown') this.input.down = isPressed;
-    if (code === 'KeyA' || code === 'ArrowLeft') this.input.left = isPressed;
-    if (code === 'KeyD' || code === 'ArrowRight') this.input.right = isPressed;
-    if (code === 'Space') this.input.shootFront = isPressed;
-    if (code === 'KeyQ') this.input.shootLeft = isPressed;
-    if (code === 'KeyE') this.input.shootRight = isPressed;
+  private handleKey(code: string, key: string, isPressed: boolean) {
+    const normalizedCode = (code || '').toLowerCase();
+    const normalizedKey = (key || '').toLowerCase();
+
+    const isMoveKey = normalizedCode === 'keyw' || normalizedCode === 'arrowup' || normalizedKey === 'w';
+    const isDownKey = normalizedCode === 'keys' || normalizedCode === 'arrowdown' || normalizedKey === 's';
+    const isLeftKey = normalizedCode === 'keya' || normalizedCode === 'arrowleft' || normalizedKey === 'a';
+    const isRightKey = normalizedCode === 'keyd' || normalizedCode === 'arrowright' || normalizedKey === 'd';
+    const isFrontFireKey = normalizedCode === 'space' || normalizedKey === ' ';
+    const isLeftFireKey = normalizedCode === 'keyq' || normalizedKey === 'q';
+    const isRightFireKey = normalizedCode === 'keye' || normalizedKey === 'e';
+
+    if (isMoveKey) this.input.up = isPressed;
+    if (isDownKey) this.input.down = isPressed;
+    if (isLeftKey) this.input.left = isPressed;
+    if (isRightKey) this.input.right = isPressed;
+    if (isFrontFireKey) this.input.shootFront = isPressed;
+    if (isLeftFireKey) this.input.shootLeft = isPressed;
+    if (isRightFireKey) this.input.shootRight = isPressed;
+
+    if (isPressed && this.isRunning && !this.isPaused) {
+      if (isFrontFireKey && this.cooldowns.front <= 0) {
+        this.spawnProjectile(this.player.x, this.player.y, this.player.rotation, 'player');
+        this.cooldowns.front = this.config.player.frontCooldown;
+      }
+      if (isLeftFireKey && this.cooldowns.left <= 0) {
+        const rot = this.player.rotation - Math.PI / 2;
+        this.spawnProjectile(this.player.x, this.player.y, rot, 'player');
+        const offX = Math.cos(rot) * 20;
+        const offY = Math.sin(rot) * 20;
+        this.spawnProjectile(this.player.x + offX, this.player.y + offY, rot, 'player');
+        this.spawnProjectile(this.player.x - offX, this.player.y - offY, rot, 'player');
+        this.cooldowns.left = this.config.player.sideCooldown;
+      }
+      if (isRightFireKey && this.cooldowns.right <= 0) {
+        const rot = this.player.rotation + Math.PI / 2;
+        this.spawnProjectile(this.player.x, this.player.y, rot, 'player');
+        const offX = Math.cos(rot) * 20;
+        const offY = Math.sin(rot) * 20;
+        this.spawnProjectile(this.player.x + offX, this.player.y + offY, rot, 'player');
+        this.spawnProjectile(this.player.x - offX, this.player.y - offY, rot, 'player');
+        this.cooldowns.right = this.config.player.sideCooldown;
+      }
+    }
   }
 
   start() {
@@ -172,6 +211,13 @@ export class Simulation {
     this.stop();
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
+    this.clearInputs();
+    this.enemies.length = 0;
+    this.projectiles.length = 0;
+    this.islands.length = 0;
+    if ((window as any).__SIMULATION__ === this) {
+      delete (window as any).__SIMULATION__;
+    }
   }
 
   private loop = (time: number) => {
@@ -297,7 +343,7 @@ export class Simulation {
       this.isRunning = false;
 
       const effectiveDuration = Math.round((this.config.sessionTime - this.sessionTime) * 10) / 10;
-      const reason: TerminationReason = this.player.health <= 0 ? 'defeat' : (this.score > 0 ? 'victory' : 'time_out');
+      const reason: TerminationReason = this.player.health <= 0 ? 'defeat' : 'time_out';
 
       if (this.onGameOver) {
         this.onGameOver({
@@ -309,9 +355,18 @@ export class Simulation {
       }
     }
 
-    if (this.onStateChange) {
+    const displayedTime = Math.floor(this.sessionTime);
+    const displayedHealth = Math.ceil(Math.max(0, this.player.health));
+    if (this.onStateChange && (
+      displayedTime !== this.lastPublishedTime ||
+      displayedHealth !== this.lastPublishedHealth ||
+      this.score !== this.lastPublishedScore
+    )) {
+      this.lastPublishedTime = displayedTime;
+      this.lastPublishedHealth = displayedHealth;
+      this.lastPublishedScore = this.score;
       this.onStateChange({
-        health: Math.max(0, this.player.health),
+        health: displayedHealth,
         maxHealth: this.player.maxHealth,
         time: this.sessionTime,
         score: this.score,
@@ -413,6 +468,11 @@ export class Simulation {
       p.x += Math.sin(p.rotation) * p.speed * dt;
       p.y -= Math.cos(p.rotation) * p.speed * dt;
 
+      if (p.x < 0 || p.x > window.innerWidth || p.y < 0 || p.y > window.innerHeight) {
+        this.projectiles.splice(i, 1);
+        continue;
+      }
+
       // Cannonball hitting island
       let hitIsland = false;
       for (const island of this.islands) {
@@ -435,7 +495,7 @@ export class Simulation {
             hit = true;
             if (e.health <= 0) {
               this.enemies.splice(j, 1);
-              this.score += 10;
+              this.score += 1;
             }
             break;
           }

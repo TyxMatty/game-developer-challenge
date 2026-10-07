@@ -25,3 +25,9 @@ A regra de ouro é separar completamente a "Lógica do Jogo" da "Renderização"
 
 - Utilizar MSW no nível da rede para garantir que toda a aplicação "acredite" estar conectada a uma API real.
 - Criaremos delays arbitrários e simulações de erro 500/400 diretamente nos Handlers do MSW, garantindo que o TanStack Query consiga ativar suas estratégias de Fallback/Retry sem código "sujo" espalhado pelos componentes.
+
+---
+
+## 4. Comentários e Variáveis.
+
+- Seguindo o formato global, as variaveis e comentários são todo em inglês.

@@ -1,36 +1,45 @@
-# Pirate Battle - Architecture & Design Decisions
+# Pirate Battle - Architecture and Design Decisions
 
-## 1. Separação de Responsabilidades (Game Logic vs Rendering vs UI)
-A arquitetura do projeto foi desenhada com três camadas principais completamente independentes:
-- **`Simulation.ts` (Regras de Jogo):** Contém toda a lógica de negócio, física, comportamento de IAs (Chaser/Shooter), colisões, vida, cooldowns e controle de tempo/pausa. É independente de PixiJS ou React. Isso garante que a lógica é testável e não depende de componentes visuais. O estado contínuo do combate (`player`, `enemies`, `projectiles`) fica integralmente aqui.
-- **`Renderer.ts` (Renderização PixiJS):** Responsável por carregar assets e desenhar o estado atual da simulação na tela. Ele é atualizado via `app.ticker`, lendo as coordenadas (x, y, rotation) da `Simulation` e refletindo em containers, sprites e gráficos do PixiJS.
-- **React (Interface e Estado Externo):** Gerencia menus, configurações, estado de MSW/API, e ciclo de vida da partida. O componente `GameCanvas.tsx` serve como ponte: inicializa a `Simulation` e o `Renderer`, acopla o input do usuário via eventos de teclado/mouse para o objeto global `Input` usado pela `Simulation`, e escuta os callbacks `onGameOver` para sair do canvas de combate.
+## Runtime Boundaries
 
-## 2. Simulação Baseada em Tempo (Time-Based Movement)
-A `Simulation` recebe um `delta` em milissegundos a cada iteração (fornecido pelo ticker, através do loop principal acoplado ao RequestAnimationFrame).
-- Todos os cálculos de velocidade (pixels por segundo) e cooldowns são escalados usando esse `delta`.
-- O cálculo segue `(speed * delta) / 1000`. Isso garante movimento, dano e spawns completamente **independentes da taxa de quadros (framerate-independent)**.
+- `src/game/Simulation.ts` owns the active match state: player, enemies, projectiles, islands, cooldowns, score, health, and remaining time. It implements movement, spawning, collisions, damage, and termination.
+- `src/game/Renderer.ts` owns the PixiJS application and mirrors simulation entities into sprites and graphics. It loads textures through `PIXI.Assets`, updates the display from the Pixi ticker, and creates short-lived explosion animations when enemies disappear.
+- React owns navigation, menus, configuration, HUD snapshots, pause UI, and the lifecycle of a match. `GameCanvas.tsx` creates and destroys the simulation and renderer, forwards game-over results, and displays asset loading progress or errors.
 
-## 3. Sincronização sem Renderizações React a cada frame
-- O React **não** armazena o estado do navio (X/Y) nem a vida em tempo real utilizando hooks como `useState` ou Redux. Se o fizesse, haveria uma renderização do DOM em cada quadro, prejudicando drasticamente a performance de 60fps.
-- As barras de vida (Player e Inimigos) e todos os efeitos rápidos (explosões, tiros) são manipulados **exclusivamente no PixiJS** via `Renderer.ts`.
-- O React apenas aciona o início do jogo (`<GameCanvas />`) e aguarda o final via evento `onGameOver`.
+The simulation is decoupled from PixiJS and React, but it is browser-oriented: it uses `window`, `requestAnimationFrame`, keyboard events, viewport dimensions, and a `window.__SIMULATION__` test hook. It should not be described as a platform-independent or pure TypeScript module.
 
-## 4. Carregamento e Reutilização de Texturas
-- Em `Renderer.ts`, utilizamos `PIXI.Assets.load()`.
-- O carregamento emite eventos de progresso que o React captura (`onProgress`) para mostrar uma barra de carregamento antes de o combate iniciar.
-- As texturas carregadas são armazenadas em atributos instanciados no `Renderer` (`texChaser`, `texShooter`, etc.) e atribuídas repetidamente aos novos inimigos que surgem (Reutilização/Flyweight), evitando recarregamento ou parsing adicional de imagens. 
+## Simulation and Rendering
 
-## 5. Ajuste do Canvas e Densidade de Pixels
-- O PixiJS foi inicializado com `resizeTo: container`, `autoDensity: true`, e `resolution: window.devicePixelRatio || 1`. Isso faz com que a arena suporte telas retina perfeitamente sem ficar borrada.
-- O redimensionamento do `TilingSprite` de fundo de oceano acompanha `this.app.renderer.on('resize', ...)`, ajustando-se à tela. As colisões das paredes limitam o barco estritamente às coordenadas lógicas do mundo.
+The simulation uses `requestAnimationFrame` and derives a delta in seconds from each frame. A frame delta is capped at 0.1 seconds. Movement, cooldowns, timers, enemy spawning, and projectile motion use that delta. While paused, the loop continues scheduling frames without updating game state; resuming resets the time origin and clears held inputs.
 
-## 6. Cleanup (Liberação de Recursos e React Strict Mode)
-- **`GameCanvas.tsx` (useEffect return):** Em React Strict Mode, os componentes são montados, desmontados e remontados. Para garantir que tudo funcione corretamente sem *memory leaks*, implementamos um *cleanup* rigoroso.
-- Ao desmontar, o `Renderer` chama `this.app.destroy(true, { children: true })`, o que limpa toda a hierarquia webGL, libera texturas do cache da GPU para essa instância, para o ticker, destrói eventos internos do PixiJS e limpa o Canvas do DOM.
-- A `Simulation` possui todos os arrays esvaziados e timers cessam. Listeners de teclado (keydown/keyup) e ponteiro/mouse acoplados no `window` em `GameCanvas.tsx` são explicitamente removidos com `removeEventListener`.
-- A captura de eventos do teclado ocorre estritamente e somente enquanto o usuário interage e o canvas está ativo.
+The PixiJS ticker reads simulation state and updates display objects. React receives a compact HUD snapshot only when the displayed time, health, or score changes, rather than receiving every position update. The player and enemy health bars, projectiles, and explosions are PixiJS objects.
 
-## 7. Mocking, Estado Offline e Idempotência
-A integração com o Mock Service Worker (MSW) é configurável via `NetworkSimulator` e persistente. Se ocorrer erro de rede ou o jogador fechar o jogo no meio do carregamento, os matches completados pendentes ficam no `localStorage` via uma fila de retentativas offline (`client.ts`), garantindo consistência total do `MatchHistory`. A rota `POST /api/match` é desenhada com princípios idempotentes: duplicatas acidentais (timeout-retry) não resultam em dupla entrada no Ranking.
+## Gameplay Rules
+
+Player and enemy movement is clamped to the viewport and resolved against island circles. Projectiles advance by their configured speed and direction and are removed on expiration, arena exit, island impact, or a single successful hit. Front cannons create one projectile; each broadside creates three and uses its own cooldown. Defeating an enemy with a player projectile awards one point. Chaser collision damages the player and removes the Chaser without awarding a point.
+
+Enemy spawns are selected from the configured Chaser ratio. A 50/50 ratio does not guarantee that both enemy types appear in every individual match. Shooter movement and firing use the configured range with a firing threshold that currently includes an additional 100 pixels.
+
+## Configuration and Persistence
+
+`src/config/GameConfig.ts` defines defaults and option limits. The Options screen persists session duration and spawn interval in local storage. `Simulation` clones the configuration at construction, so an active match uses a snapshot. The last completed match and pending match submissions are stored locally; abandoning an active match does not invoke the completion callback.
+
+## Assets and Resource Lifecycle
+
+`Renderer.init()` initializes PixiJS, attaches its canvas, loads the water, ship, HUD, and explosion textures, and reports loading progress. Loaded texture references are reused for new entities within the renderer instance. `GameCanvas` cleanup stops and destroys the simulation, removes its keyboard listeners, destroys the Pixi application, and clears component references. The app is mounted under React `StrictMode`.
+
+The PixiJS asset cache is global. This implementation does not explicitly unload every cached URL after a match, so renderer destruction should not be interpreted as proof that all shared cached textures have been evicted from memory.
+
+## Ranking and Match History
+
+`src/api/client.ts` defines typed Axios requests against `/api/ranking`, `/api/history`, and `/api/match`. `src/api/queries.ts` uses TanStack Query for caching, retries, refetching, and invalidation. Successful match registration invalidates ranking and history queries. Failed submissions are deduplicated by match ID in a local pending queue and can be flushed later.
+
+MSW handlers in `src/mocks/handlers.ts` implement the API in the browser. They combine fixtures with locally stored submitted matches, filter ranking entries by session configuration, sort deterministically, and paginate results. Repeated registration with the same match ID returns the existing record. `NetworkSimulator` selects a scenario persisted in local storage; its reset action clears the scenario, mock records, last result, and pending queue, then reloads the page.
+
+## Known Limitations
+
+- Current network scenarios do not include out-of-order responses or endpoint-specific ranking/history failures.
+- `slow_variable` uses `Math.random()`, so its latency is not deterministic.
+- The current Playwright suite does not cover every requirement in the challenge, and no visual comparison baselines are configured.
+- Production profiling and a public deployment have not been verified; see `PERFORMANCE.md` and the Deployment section in `README.md`.
 

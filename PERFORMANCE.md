@@ -1,52 +1,34 @@
-# Performance Profiling Report
+# Performance Profiling Status
 
-## 1. Ambiente de Referência (Hardware & Software)
-- **Sistema Operacional:** Windows 11 / macOS Sonoma
-- **Navegador:** Google Chrome 124 (Chromium)
-- **Hardware:** CPU 8-core, 16GB RAM, GPU Integrada (ex: Apple M1 ou Intel Iris Xe)
-- **Resolução Testada:** 1920x1080 (`devicePixelRatio`: 1 e 2)
-- **Modo de Build:** Produção (`npm run build` servido via `vite preview`)
+## Evidence Status
 
-## 2. Metodologia do Teste
-- **Configuração da Partida:**
-  - Duração: 180 segundos (3 minutos)
-  - Intervalo de Spawn: 1 inimigo a cada 2 segundos.
-- **Teste de Vazamento de Memória:** Realizou-se uma rotina de *Stress* executando a partida por 30 segundos, saindo para o Menu Principal e reiniciando o combate. Este ciclo foi repetido 5 vezes consecutivas.
+No reproducible production-build profiling evidence is currently available in this repository. The previously listed FPS, frame-time, scripting-time, memory, and entity-count figures did not include captured traces or a verifiable run record, so they are intentionally not reported as measured results here.
 
----
+| Required measurement | Current status |
+| --- | --- |
+| Reference hardware, OS, browser, resolution, and device-pixel ratio | Not recorded for a profiling run |
+| Average FPS and p95 frame interval during a 3-minute match | Not measured |
+| Peak enemy, projectile, and rendered-object counts | Not captured from a profiling run |
+| Heap behavior over five start/play/exit cycles | Not measured with retained snapshots |
+| Chrome Performance and Memory evidence | Not attached |
 
-## 3. Avaliação de Gameplay (Partida de 3 Minutos)
-Ao longo da partida de 180 segundos, a simulação alcançou o teto estrito de entidades no mapa de acordo com o pool rate:
-- **Pico de Entidades Ativas:**
-  - Inimigos: ~50 (teto intencional configurado na AI).
-  - Projéteis: ~30 na tela (considerando taxa de disparo do Shooter e Player).
-  - Componentes Renderizados: Cerca de 200 sprites no grafo de cena (vida, barcos, balas, fumaças).
+## Reproducible Measurement Procedure
 
-### Métricas de FPS (Performance Panel do Chrome DevTools):
-- **Taxa de Quadros Média:** 59.8 FPS.
-- **Percentil 95 do Tempo entre Frames:** 16.7ms (o que é ideal para renderização cravada em 60Hz).
-- **Sobrecarga de Scripting:** A função `Simulation.update()` tomou menos de `1.2ms` por quadro no pior caso, deixando amplo espaço para a renderização do PixiJS (WebGL).
+1. Run `npm ci`, `npm run build`, and `npm run preview`; profile the preview build, not the Vite development server.
+2. Record OS, CPU, GPU, available memory, browser version, viewport, and device-pixel ratio.
+3. Set session duration to 180 seconds and spawn interval to 2 seconds. Capture a full three-minute match using Chrome DevTools Performance. Record average FPS and the p95 frame interval, and inspect the `Simulation.update()` call cost.
+4. Record peak enemies, projectiles, and display objects from the same run. Keep the test actions and configuration identical when comparing revisions.
+5. Capture a heap snapshot at the main menu, then run five consistent start/play/exit cycles. Force garbage collection when available and capture a final snapshot. Compare retained objects and heap size; do not infer GPU texture release from JavaScript heap size alone.
+6. Save the raw trace, heap snapshots, and a short run log alongside this report before replacing the `Not measured` entries with results.
 
----
+## Code-Level Considerations
 
-## 4. Gerenciamento de Memória (Ciclo de Vida de 5 Partidas)
+- `Simulation.update()` caps each frame delta at 0.1 seconds. This limits large catch-up updates but does not itself prove a 60 FPS result.
+- `resolvePhysics()` checks pairs among the player and enemies, making ship-to-ship checks quadratic in the number of ships. The simulation currently stops spawning after 50 active enemies.
+- `Renderer.render()` creates sets while synchronizing projectile and enemy IDs and updates health-bar masks each ticker frame. These paths should be included in a measured performance trace before optimization claims are made.
+- `Renderer.destroy()` destroys the PixiJS application, but PixiJS assets are managed by a global cache and are not explicitly unloaded by URL. Memory conclusions require snapshots and should distinguish JavaScript heap from GPU resources.
 
-### Teste de "Inicia-Joga-Sai" (5 Ciclos)
-Um dos principais riscos em aplicações Single Page Application (SPA) integrando React e PixiJS é a criação cumulativa de Texturas e *Event Listeners* órfãos (Memory Leaks).
+## Result Log
 
-Através da aba de **Memory (Heap Snapshot)**, comparamos o estado de memória no "Menu Principal" (ponto neutro):
-1. **Ponto Neutro Inicial:** ~25 MB (DOM, React, módulos JS carregados).
-2. **Durante o Combate (Partida 3):** ~65 MB (Texturas, Sprites, instâncias da Simulação alocadas, GPU buffer referenciado).
-3. **Ponto Neutro Final (Após o 5º ciclo e Garbage Collection):** ~26 MB.
-
-**Análise:**
-A diferença insignificante de apenas 1 MB entre o neutro inicial e o estado após 5 destruições atesta o comportamento de **zero memory leak significativo**.
-- **O que garantiu isso?**
-  Ao clicar em "Main Menu", o React desmonta o `<GameCanvas />`. O hook `useEffect` aciona imediatamente o `renderer.destroy()`, que envia ordens à instância da classe do jogo (`this.app.destroy(true, { children: true })`). Isso destrói o contexto WebGL e elimina ponteiros pesados. Paralelamente, `Simulation.destroy()` limpa os Arrays de entidades e emite `removeEventListener` pro teclado, garantindo que o Garbage Collector limpe os navios.
-
----
-
-## 5. Limitações Observadas e Gargalos Futuros
-- **Deteção de Colisão O(N²):** Atualmente, a rotina `resolvePhysics()` checa colisão par-a-par entre navios (`n * (n - 1) / 2`). Para ~50 navios, isso representa menos de 1225 checagens por quadro, o que o JS executa quase instantaneamente. Porém, caso o jogo escalasse para `10.00` inimigos simultâneos, este cálculo derrubaria o FPS. A solução para esse caso futuro seria uma matriz de partição espacial (Spatial Hash Grid ou QuadTree).
-- **Batching de Renderização:** Graças ao `PIXI.Assets` utilizando um número pequeno de texturas recorrentes, o *Draw Call* da GPU está na casa de 1~2 batches. O jogo performou excelentemente, inclusive em dispositivos mobile menos potentes, porque a carga foi deslocada quase integralmente pra VRAM.
+Add one entry per verified run with the commit or source revision, date, environment, configuration, FPS average, p95 frame interval, peak entity counts, and five-cycle memory observations. Until then, the performance criterion remains unverified.
 

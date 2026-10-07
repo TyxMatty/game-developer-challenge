@@ -1,3 +1,69 @@
+# Pirate Battle - Solution Guide
+
+## Local Setup
+
+Requirements: Node.js compatible with the versions in `package-lock.json` and npm.
+
+```bash
+npm ci
+npm run dev
+```
+
+No environment variables or private services are required. MSW intercepts the ranking and match-history API requests in the browser. The production build is served from `dist/`.
+
+## Available Commands
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the Vite development server. |
+| `npm run build` | Run TypeScript project checks and create the production build. |
+| `npm run preview` | Serve the production build locally. Run `npm run build` first. |
+| `npm run lint` | Run Oxlint. |
+| `npm run typecheck` | Run TypeScript project checks without building. |
+| `npm run test:e2e` | Run Playwright tests in desktop Chromium and Mobile Chrome. |
+| `npm run test:e2e:ui` | Open the Playwright UI runner. |
+
+Install the Playwright browser once with `npx playwright install chromium` before running E2E tests. The compatibility configuration used for the local validation in this workspace contains a machine-specific browser path and is not a portable project command.
+
+## Controls
+
+| Action | Keyboard | Touch |
+| --- | --- | --- |
+| Move forward / reverse | `W` / `S` or Up / Down | Forward / reverse controls |
+| Rotate | `A` / `D` or Left / Right | Left / right controls |
+| Fire forward | `Space` | Bow cannon control |
+| Fire left / right | `Q` / `E` | Port / starboard controls |
+| Pause / resume | `Escape` | Pause menu actions |
+
+Movement and firing can be combined. The game is playable in portrait and landscape; controls are anchored to the lower corners of the viewport.
+
+## Gameplay Configuration
+
+The Options screen persists the session duration (60-180 seconds in 15-second steps) and enemy spawn interval (1-10 seconds in 0.5-second steps) in browser storage. Each match uses a snapshot of the configuration taken when it starts. Other balance values are centralized in `src/config/GameConfig.ts`.
+
+## Network Scenarios
+
+Open **MSW DevTools** in the lower-right corner to select a scenario. The selection applies to new requests and persists in local storage. Available scenarios are `success`, `empty_lists`, `slow_variable`, `error_500`, `network_error`, and `timeout_match_post`.
+
+To reproduce deferred match submission, select **Timeout on Match POST**, complete a match, then select **Success (Normal)** and use the pending-match retry action. The mock stores the match before returning the delayed response, so the same match ID must not create a duplicate on retry. **Reset State & Reload** clears the mock scenario, stored mock matches, last completed match, and pending queue.
+
+## Test and Failure Reproduction
+
+Run the full suite with `npm run test:e2e`. The Playwright projects cover desktop Chromium and Pixel 5 emulation; the touch-only test is skipped on desktop by design. On failure, inspect the generated Playwright HTML report and trace artifacts under `playwright-report/` and `test-results/`.
+
+Current automated tests cover options persistence, asset-load failure and retry, score, movement/shooting, pause and focus-loss pause, touch movement, ranking/match registration, timeout recovery, and mock reset. They do not yet cover every item in the challenge checklist, including visual baselines, all collision and enemy-AI edge cases, death/restart, pagination, or out-of-order network responses.
+
+## Deployment
+
+**Public deployment URL: not published.** Deployment is a required delivery item and remains outstanding. For a static Vite deployment, use `npm run build` and publish the `dist/` directory on Vercel, Netlify, or Cloudflare Pages. The published origin must serve `public/mockServiceWorker.js` and allow the application to register the service worker; verify match registration and reload behavior on the deployed URL before submitting it.
+
+## Supporting Documents
+
+- [Architecture and design decisions](ARCHITECTURE.md)
+- [Performance profiling status and procedure](PERFORMANCE.md)
+
+---
+
 # Desafio React & Pixi JS — Pirate Battle
 
 Desenvolva um **shooter naval 2D com visão superior** usando React, TypeScript e PixiJS. O jogador deve navegar entre ilhas, enfrentar navios inimigos e acumular pontos até o fim da partida.

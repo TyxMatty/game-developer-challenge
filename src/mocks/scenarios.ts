@@ -34,6 +34,6 @@ export function resetScenarioState() {
   setScenario('success');
   localStorage.removeItem('pirate_matches_db');
   localStorage.removeItem('pirate_last_completed_match');
-  localStorage.removeItem('pirate_pending_matches'); // From TanStack query / custom logic
+  localStorage.removeItem('pirate_pending_matches_queue');
 }
 

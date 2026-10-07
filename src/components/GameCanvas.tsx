@@ -14,15 +14,17 @@ interface GameCanvasProps {
   onOpenOptions: () => void;
 }
 
-export default function GameCanvas({ config, onGameOver, onQuit, onOpenOptions }: GameCanvasProps) {
+export default function GameCanvas({ config, onGameOver, onQuit, onOpenOptions }: GameCanvasProps) { // Main game canvas component that handles the simulation, rendering, and game state
   const containerRef = useRef<HTMLDivElement>(null);
   const simulationRef = useRef<Simulation | null>(null);
   const rendererRef = useRef<Renderer | null>(null);
 
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [loadProgress, setLoadProgress] = useState<number>(0);
-  const [isPaused, setIsPaused] = useState<boolean>(false);
-  const [isAutoPaused, setIsAutoPaused] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Indicates if the game assets are currently loading
+  const [loadProgress, setLoadProgress] = useState<number>(0); // Tracks the progress of asset loading
+  const [loadError, setLoadError] = useState<string | null>(null); // Stores any error that occurs during asset loading
+  const [loadAttempt, setLoadAttempt] = useState<number>(0); // Tracks the number of asset load attempts
+  const [isPaused, setIsPaused] = useState<boolean>(false); // Indicates if the game is currently paused
+  const [isAutoPaused, setIsAutoPaused] = useState<boolean>(false); // Indicates if the game is auto-paused due to blur or tab hidden
 
   const [gameState, setGameState] = useState(() => ({
     health: config.player.maxHealth,
@@ -38,7 +40,7 @@ export default function GameCanvas({ config, onGameOver, onQuit, onOpenOptions }
     setIsTouchDevice(hasTouch);
   }, []);
 
-  const handlePause = useCallback((auto = false) => {
+  const handlePause = useCallback((auto = false) => { // This method handles pausing the game, either manually or automatically
     if (simulationRef.current && simulationRef.current.isRunning && !simulationRef.current.isPaused) {
       simulationRef.current.pause();
       setIsPaused(true);
@@ -46,7 +48,7 @@ export default function GameCanvas({ config, onGameOver, onQuit, onOpenOptions }
     }
   }, []);
 
-  const handleResume = useCallback(() => {
+  const handleResume = useCallback(() => { // This method handles resuming the game from a paused state
     if (simulationRef.current && simulationRef.current.isPaused) {
       simulationRef.current.resume();
       setIsPaused(false);
@@ -54,7 +56,7 @@ export default function GameCanvas({ config, onGameOver, onQuit, onOpenOptions }
     }
   }, []);
 
-  useEffect(() => {
+  useEffect(() => { // Method for VFX initialization and game loop setup
     if (!containerRef.current) return;
 
     // Create match simulation with immutable snapshot
@@ -99,6 +101,11 @@ export default function GameCanvas({ config, onGameOver, onQuit, onOpenOptions }
         }
         setIsLoading(false);
         simulation.start();
+      })
+      .catch((error: unknown) => {
+        if (!mounted) return;
+        setIsLoading(false);
+        setLoadError(error instanceof Error ? error.message : 'Unable to load game assets.');
       });
 
     // Auto-pause handlers (blur and tab hidden)
@@ -139,7 +146,7 @@ export default function GameCanvas({ config, onGameOver, onQuit, onOpenOptions }
       simulationRef.current = null;
       rendererRef.current = null;
     };
-  }, [config, onGameOver, handlePause, handleResume]);
+  }, [config, onGameOver, handlePause, handleResume, loadAttempt]);
 
   return (
     <div
@@ -199,6 +206,41 @@ export default function GameCanvas({ config, onGameOver, onQuit, onOpenOptions }
         </div>
       )}
 
+      {loadError && (
+        <div
+          role="alert"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 70,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 16,
+            padding: 24,
+            backgroundColor: '#071626',
+            color: '#ffffff',
+            textAlign: 'center',
+          }}
+        >
+          <h2>Failed to load game assets</h2>
+          <p>{loadError}</p>
+          <button
+            type="button"
+            onClick={() => {
+              setLoadError(null);
+              setLoadProgress(0);
+              setIsLoading(true);
+              setLoadAttempt((attempt) => attempt + 1);
+            }}
+          >
+            Retry
+          </button>
+          <button type="button" onClick={onQuit}>Main Menu</button>
+        </div>
+      )}
+
       {/* PIXI Canvas Container */}
       <div
         ref={containerRef}
@@ -220,7 +262,6 @@ export default function GameCanvas({ config, onGameOver, onQuit, onOpenOptions }
       {!isLoading && isTouchDevice && (
         <MobileControls
           simulation={simulationRef.current}
-          onPause={() => handlePause(false)}
         />
       )}
 

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { type MockScenario, getScenario, setScenario, resetScenarioState } from '../mocks/scenarios';
+import React, { useState, useEffect } from 'react'; // React import for component and hooks
+import { type MockScenario, getScenario, setScenario, resetScenarioState } from '../mocks/scenarios'; 
 
-const SCENARIOS: { value: MockScenario; label: string }[] = [
-  { value: 'success', label: 'Success (Normal)' },
+const SCENARIOS: { value: MockScenario; label: string }[] = [ // List of available network scenarios, will be used in Network Simulator
+  { value: 'success', label: 'Success (Normal)' }, 
   { value: 'empty_lists', label: 'Empty Lists (Ranking/History)' },
   { value: 'slow_variable', label: 'Slow & Variable Latency' },
   { value: 'error_500', label: '500 Internal Server Error' },
@@ -79,10 +79,11 @@ export const NetworkSimulator: React.FC = () => {
       </div>
 
       <div style={{ marginBottom: '12px' }}>
-        <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px', color: '#aaa' }}>
+        <label htmlFor="network-scenario" style={{ display: 'block', fontSize: '12px', marginBottom: '4px', color: '#aaa' }}>
           Select Scenario
         </label>
         <select 
+          id="network-scenario"
           value={currentScenario} 
           onChange={handleChange}
           style={{ width: '100%', padding: '6px', background: '#333', color: '#fff', border: '1px solid #555', borderRadius: '4px' }}

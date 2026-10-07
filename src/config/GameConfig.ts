@@ -37,12 +37,12 @@ export interface GameConfig {
 
 export const CONFIG_LIMITS = {
   sessionTime: {
-    min: 15,
-    max: 300,
+    min: 60,
+    max: 180,
     step: 15,
     default: 60,
     unit: 'seconds',
-    description: 'Total duration of a combat match (15s to 300s).'
+    description: 'Total duration of a combat match (60s to 180s).'
   },
   spawnInterval: {
     min: 1.0,

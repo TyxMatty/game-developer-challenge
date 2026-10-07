@@ -2,10 +2,9 @@ import { type Simulation } from '../game/Simulation';
 
 interface MobileControlsProps {
   simulation: Simulation | null;
-  onPause: () => void;
 }
 
-export default function MobileControls({ simulation, onPause }: MobileControlsProps) {
+export default function MobileControls({ simulation }: MobileControlsProps) {
   if (!simulation) return null;
 
   const setInput = (key: keyof Simulation['input'], value: boolean) => {
@@ -32,6 +31,7 @@ export default function MobileControls({ simulation, onPause }: MobileControlsPr
 
   return (
     <div
+      className="mobile-touch-controls"
       style={{
         position: 'absolute',
         inset: 0,
@@ -39,53 +39,24 @@ export default function MobileControls({ simulation, onPause }: MobileControlsPr
         zIndex: 15,
         userSelect: 'none',
         touchAction: 'none',
-      }}
+        '--control-size': '56px',
+        '--control-gap': '8px',
+        '--control-offset': '24px',
+        '--control-icon-size': '30px',
+      } as React.CSSProperties}
       aria-label="Mobile Touch Controls"
     >
-      {/* Top Center-Right: Mobile Pause Button */}
-      <button
-        type="button"
-        onClick={onPause}
-        aria-label="Pause game"
-        style={{
-          position: 'absolute',
-          top: 16,
-          right: '50%',
-          transform: 'translateX(50%)',
-          width: 52,
-          height: 52,
-          border: 'none',
-          background: 'none',
-          padding: 0,
-          cursor: 'pointer',
-          pointerEvents: 'auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <img
-          src="/assets/png/default/ui/controls/button_round_normal.png"
-          alt=""
-          style={{ position: 'absolute', width: '100%', height: '100%' }}
-        />
-        <img
-          src="/assets/png/default/ui/controls/icon_pause.png"
-          alt="Pause"
-          style={{ width: 28, height: 28, zIndex: 1 }}
-        />
-      </button>
-
       {/* Bottom Left: Navigation cluster (Steer & Thrust) */}
       <div
+        className="mobile-control-cluster mobile-navigation-controls"
         style={{
           position: 'absolute',
-          bottom: 24,
-          left: 24,
+          bottom: 'var(--control-offset)',
+          left: 'var(--control-offset)',
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 56px)',
-          gridTemplateRows: 'repeat(2, 56px)',
-          gap: 8,
+          gridTemplateColumns: 'repeat(3, var(--control-size))',
+          gridTemplateRows: 'repeat(2, var(--control-size))',
+          gap: 'var(--control-gap)',
           pointerEvents: 'auto',
         }}
       >
@@ -125,14 +96,15 @@ export default function MobileControls({ simulation, onPause }: MobileControlsPr
 
       {/* Bottom Right: Cannons cluster (Front, Port, Starboard) */}
       <div
+        className="mobile-control-cluster mobile-attack-controls"
         style={{
           position: 'absolute',
-          bottom: 24,
-          right: 24,
+          bottom: 'var(--control-offset)',
+          right: 'var(--control-offset)',
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 56px)',
-          gridTemplateRows: 'repeat(2, 56px)',
-          gap: 8,
+          gridTemplateColumns: 'repeat(3, var(--control-size))',
+          gridTemplateRows: 'repeat(2, var(--control-size))',
+          gap: 'var(--control-gap)',
           pointerEvents: 'auto',
         }}
       >
@@ -181,8 +153,8 @@ function ControlButton({
       type="button"
       aria-label={label}
       style={{
-        width: 56,
-        height: 56,
+        width: 'var(--control-size)',
+        height: 'var(--control-size)',
         position: 'relative',
         border: 'none',
         background: 'none',
@@ -204,7 +176,7 @@ function ControlButton({
       <img
         src={icon}
         alt=""
-        style={{ width: 30, height: 30, zIndex: 1, pointerEvents: 'none' }}
+        style={{ width: 'var(--control-icon-size)', height: 'var(--control-icon-size)', zIndex: 1, pointerEvents: 'none' }}
       />
     </button>
   );

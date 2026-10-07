@@ -21,15 +21,29 @@ const queryClient = new QueryClient({
 
 export type AppScreen = 'MENU' | 'PLAYING' | 'OPTIONS' | 'RANKING' | 'HISTORY' | 'RESULTS';
 
+function loadLastCompletedMatch(): MatchRecord | null {
+  try {
+    const stored = JSON.parse(localStorage.getItem('pirate_last_completed_match') || 'null');
+    return stored && typeof stored.id === 'string' ? stored as MatchRecord : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<AppScreen>('MENU');
+  const [completedMatch, setCompletedMatch] = useState<MatchRecord | null>(() => loadLastCompletedMatch());
+  const [currentScreen, setCurrentScreen] = useState<AppScreen>(() => (
+    sessionStorage.getItem('pirate_show_last_result') === 'true' && loadLastCompletedMatch()
+      ? 'RESULTS'
+      : 'MENU'
+  ));
   const [previousScreen, setPreviousScreen] = useState<AppScreen>('MENU');
 
   // Active match snapshot and result
   const [activeConfigSnapshot, setActiveConfigSnapshot] = useState<GameConfig | null>(null);
-  const [completedMatch, setCompletedMatch] = useState<MatchRecord | null>(null);
 
   const startNewMatch = useCallback(() => {
+    sessionStorage.removeItem('pirate_show_last_result');
     // Snapshot active config at the instant match begins
     const snapshot = loadLocalConfig();
     setActiveConfigSnapshot(snapshot);
@@ -38,6 +52,12 @@ export default function App() {
   }, []);
 
   const handleGameOver = useCallback((record: MatchRecord) => {
+    try {
+      localStorage.setItem('pirate_last_completed_match', JSON.stringify(record));
+      sessionStorage.setItem('pirate_show_last_result', 'true');
+    } catch (error) {
+      console.warn('Failed to persist completed match:', error);
+    }
     setCompletedMatch(record);
     setCurrentScreen('RESULTS');
   }, []);
@@ -116,6 +136,7 @@ export default function App() {
             matchResult={completedMatch}
             onPlayAgain={startNewMatch}
             onMainMenu={() => {
+              sessionStorage.removeItem('pirate_show_last_result');
               setCompletedMatch(null);
               setCurrentScreen('MENU');
             }}

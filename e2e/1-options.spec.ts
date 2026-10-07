@@ -6,40 +6,38 @@ test.describe('Options Navigation, Validation, and Persistence', () => {
     
     // Click Options in main menu
     await page.getByRole('button', { name: 'Game Options' }).click();
-    await expect(page.locator('h2', { hasText: 'Settings' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Battle Options' })).toBeVisible();
 
-    const sessionTimeInput = page.getByLabel('Game Session Time (seconds):');
-    const spawnTimeInput = page.getByLabel('Enemy Spawn Time (seconds):');
+    const sessionTime = page.getByText('60s', { exact: true });
+    const spawnInterval = page.getByText('3.0s', { exact: true });
+    await expect(sessionTime).toBeVisible();
+    await expect(spawnInterval).toBeVisible();
 
-    // Default values check
-    await expect(sessionTimeInput).toHaveValue('120');
-    await expect(spawnTimeInput).toHaveValue('4');
+    const decreaseSession = page.getByRole('button', { name: 'Decrease session time by 15s' });
+    const increaseSession = page.getByRole('button', { name: 'Increase session time by 15s' });
+    const increaseSpawn = page.getByRole('button', { name: 'Increase spawn interval by 0.5s' });
 
-    // Validation checks
-    await sessionTimeInput.fill('30');
-    await spawnTimeInput.fill('0');
-    await page.getByRole('button', { name: 'Save Configuration' }).click();
-
-    // Check validation error
-    await expect(page.getByText(/Session time must be between 60 and 180 seconds/)).toBeVisible();
-    await expect(page.getByText(/Spawn interval must be positive/)).toBeVisible();
-
-    // Set valid values
-    await sessionTimeInput.fill('90');
-    await spawnTimeInput.fill('5');
-    await page.getByRole('button', { name: 'Save Configuration' }).click();
-
-    // Should return to main menu
-    await expect(page.locator('h2', { hasText: 'Settings' })).not.toBeVisible();
-    await expect(page.getByRole('button', { name: 'Start Battle' })).toBeVisible();
+    await expect(decreaseSession).toBeDisabled();
+    for (let step = 0; step < 2; step++) await increaseSession.click();
+    for (let step = 0; step < 6; step++) await increaseSession.click();
+    await expect(page.getByText('180s', { exact: true })).toBeVisible();
+    await expect(increaseSession).toBeDisabled();
+    for (let step = 0; step < 6; step++) await page.getByRole('button', { name: 'Decrease session time by 15s' }).click();
+    for (let step = 0; step < 4; step++) await increaseSpawn.click();
+    for (let step = 0; step < 8; step++) await page.getByRole('button', { name: 'Decrease spawn interval by 0.5s' }).click();
+    await expect(page.getByText('1.0s', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Decrease spawn interval by 0.5s' })).toBeDisabled();
+    for (let step = 0; step < 8; step++) await increaseSpawn.click();
+    await expect(page.getByText('90s', { exact: true })).toBeVisible();
+    await expect(page.getByText('5.0s', { exact: true })).toBeVisible();
 
     // Refresh the page
     await page.reload();
 
     // Verify persistence
     await page.getByRole('button', { name: 'Game Options' }).click();
-    await expect(sessionTimeInput).toHaveValue('90');
-    await expect(spawnTimeInput).toHaveValue('5');
+    await expect(page.getByText('90s', { exact: true })).toBeVisible();
+    await expect(page.getByText('5.0s', { exact: true })).toBeVisible();
   });
 });
 
