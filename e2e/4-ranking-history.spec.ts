@@ -1,6 +1,22 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Ranking and History (TanStack + MSW)', () => {
+  test('should bypass document navigation while keeping API mocks active', async ({ page }) => {
+    const navigationWarnings: string[] = [];
+    page.on('console', (message) => {
+      if (message.type() === 'warning' && message.text().includes('GET /')) {
+        navigationWarnings.push(message.text());
+      }
+    });
+
+    await page.goto('/');
+    await page.reload();
+    await page.getByRole('button', { name: 'Ranking Hall of Fame' }).click();
+
+    await expect(page.getByRole('row', { name: /Edward "Blackbeard" Teach/ })).toBeVisible();
+    expect(navigationWarnings).toEqual([]);
+  });
+
   test('should render ranking pages with the matching fixture set', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Ranking Hall of Fame' }).click();
@@ -159,4 +175,3 @@ test.describe('Ranking and History (TanStack + MSW)', () => {
     expect(await page.evaluate(() => localStorage.getItem('pirate_mock_scenario'))).toBe('success');
   });
 });
-

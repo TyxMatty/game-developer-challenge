@@ -120,6 +120,11 @@ addEventListener('message', function (event) {
 })
 
 addEventListener('fetch', function (event) {
+  // Let the browser handle document navigations instead of proxying them.
+  if (event.request.mode === 'navigate') {
+    return
+  }
+
   // Opening the DevTools triggers the "only-if-cached" request
   // that cannot be handled by the worker. Bypass such requests.
   if (

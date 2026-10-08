@@ -1,6 +1,10 @@
 # E2E Tests Coverage
 
-This project includes E2E tests using Playwright that map directly to the 12 scenarios requested in the challenge.
+This project includes Playwright E2E tests for the core scenarios requested in the challenge. The suite runs in desktop Chromium and Pixel 5 emulation; the touch-only test is intentionally skipped on desktop.
+
+### MSW navigation bypass and API mocking
+- **Spec:** `4-ranking-history.spec.ts`
+- **Description:** Reloads the app and verifies that MSW does not warn about or intercept the document navigation, then confirms ranking data is still served by the mock API.
 
 ### 1. Navegação, validação e persistência das opções.
 - **Spec:** `1-options.spec.ts`
@@ -47,6 +51,7 @@ This project includes E2E tests using Playwright that map directly to the 12 sce
 - **Description:** Completes a match, intercepts the API call via MSW (simulated locally). Then verifies the match score correctly appears in both the Hall of Fame and the History screens immediately after.
 
 ### 12. Reenvio após timeout e respostas atrasadas.
-- **Spec:** `Manual validation via Network Simulator`
-- **Description:** The `NetworkSimulator.tsx` (MSW DevTools) provides presets like `Timeout on Match POST` and `Slow & Variable Latency` which allows manual/e2e tests to simulate and assert how React Query and the optimistic background sync handle delayed network environments.
+- **Spec:** `4-ranking-history.spec.ts`
+- **Description:** Tests recovery from a timed-out match submission without duplicating the persisted match. The `NetworkSimulator` also provides `Timeout on Match POST` and `Slow & Variable Latency` scenarios for manual verification.
 
+The full suite currently contains 56 project/test combinations: 55 pass, and the desktop touch case is intentionally skipped. Run `npm run test:e2e` for the development server or `npm run test:e2e:preview` for the production build. Set `E2E_BASE_URL` to run against a deployed site.
