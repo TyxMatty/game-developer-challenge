@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1520.816 205" width="1520.816" height="205" style="--bg:#1F1F1F;--fg:#CCCCCC;--line:#CCCCCC;--accent:#0078D4;--muted:#CCCCCCCC;--surface:#181818;--border:#CCCCCC;background:var(--bg)">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {
+    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          var(--fg);
+    --_text-sec:      var(--muted, color-mix(in srgb, var(--fg) 60%, var(--bg)));
+    --_text-muted:    var(--muted, color-mix(in srgb, var(--fg) 40%, var(--bg)));
+    --_text-faint:    color-mix(in srgb, var(--fg) 25%, var(--bg));
+    --_line:          var(--line, color-mix(in srgb, var(--fg) 50%, var(--bg)));
+    --_arrow:         var(--accent, color-mix(in srgb, var(--fg) 85%, var(--bg)));
+    --_node-fill:     var(--surface, color-mix(in srgb, var(--fg) 3%, var(--bg)));
+    --_node-stroke:   var(--border, color-mix(in srgb, var(--fg) 20%, var(--bg)));
+    --_group-fill:    var(--bg);
+    --_group-hdr:     color-mix(in srgb, var(--fg) 5%, var(--bg));
+    --_inner-stroke:  color-mix(in srgb, var(--fg) 12%, var(--bg));
+    --_key-badge:     color-mix(in srgb, var(--fg) 10%, var(--bg));
+  }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="5" refX="7" refY="2.5" orient="auto">
+    <polygon points="0 0, 8 2.5, 0 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8" markerHeight="5" refX="1" refY="2.5" orient="auto-start-reverse">
+    <polygon points="8 0, 0 2.5, 8 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<polyline class="edge" data-from="Task1" data-to="Task2" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="174.575,102.5 222.575,102.5" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="Task2" data-to="Task3" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="391.236,102.5 439.236,102.5" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="Task3" data-to="Task4" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="592.336,102.5 640.336,102.5" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="Task4" data-to="Task5" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="756.386,102.5 804.386,102.5" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="Task5" data-to="Task6" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="941.925,102.5 989.925,102.5" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="Task6" data-to="Task7" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="1148.953,102.5 1196.953,102.5" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="Task7" data-to="Prod" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="1307.816,102.5 1355.816,102.5" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<g class="node" data-id="Task1" data-label="Fase 1
+Simulação Core" data-shape="rectangle">
+  <rect x="40" y="75.6" width="134.575" height="53.800000000000004" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="107.2875" y="102.5" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)"><tspan x="107.2875" dy="-3.9000000000000012">Fase 1</tspan><tspan x="107.2875" dy="16.900000000000002">Simulação Core</tspan></text>
+</g>
+<g class="node" data-id="Task2" data-label="Fase 2
+Renderização PixiJS" data-shape="rectangle">
+  <rect x="222.575" y="75.6" width="168.661" height="53.800000000000004" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="306.90549999999996" y="102.5" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)"><tspan x="306.90549999999996" dy="-3.9000000000000012">Fase 2</tspan><tspan x="306.90549999999996" dy="16.900000000000002">Renderização PixiJS</tspan></text>
+</g>
+<g class="node" data-id="Task3" data-label="Fase 3
+Gameplay e Física" data-shape="rectangle">
+  <rect x="439.236" y="75.6" width="153.10000000000002" height="53.800000000000004" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="515.7860000000001" y="102.5" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)"><tspan x="515.7860000000001" dy="-3.9000000000000012">Fase 3</tspan><tspan x="515.7860000000001" dy="16.900000000000002">Gameplay e Física</tspan></text>
+</g>
+<g class="node" data-id="Task4" data-label="Fase 4
+UI com React" data-shape="rectangle">
+  <rect x="640.336" y="75.6" width="116.05000000000001" height="53.800000000000004" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="698.361" y="102.5" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)"><tspan x="698.361" dy="-3.9000000000000012">Fase 4</tspan><tspan x="698.361" dy="16.900000000000002">UI com React</tspan></text>
+</g>
+<g class="node" data-id="Task5" data-label="Fase 5
+Polimento Visual" data-shape="rectangle">
+  <rect x="804.386" y="75.6" width="137.539" height="53.800000000000004" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="873.1555" y="102.5" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)"><tspan x="873.1555" dy="-3.9000000000000012">Fase 5</tspan><tspan x="873.1555" dy="16.900000000000002">Polimento Visual</tspan></text>
+</g>
+<g class="node" data-id="Task6" data-label="Fase 6
+Mocking MSW e API" data-shape="rectangle">
+  <rect x="989.925" y="75.6" width="159.02799999999996" height="53.800000000000004" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="1069.4389999999999" y="102.5" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)"><tspan x="1069.4389999999999" dy="-3.9000000000000012">Fase 6</tspan><tspan x="1069.4389999999999" dy="16.900000000000002">Mocking MSW e API</tspan></text>
+</g>
+<g class="node" data-id="Task7" data-label="Fase 7
+Testes E2E" data-shape="rectangle">
+  <rect x="1196.953" y="75.6" width="110.86299999999999" height="53.800000000000004" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="1252.3845" y="102.5" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)"><tspan x="1252.3845" dy="-3.9000000000000012">Fase 7</tspan><tspan x="1252.3845" dy="16.900000000000002">Testes E2E</tspan></text>
+</g>
+<g class="node" data-id="Prod" data-label="PRODUÇÃO" data-shape="circle">
+  <circle cx="1418.316" cy="102.5" r="62.5" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="1418.316" y="102.5" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">PRODUÇÃO</text>
+</g>
+</svg>

@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 681.4700000000001 566.8" width="681.4700000000001" height="566.8" style="--bg:#1F1F1F;--fg:#CCCCCC;--line:#CCCCCC;--accent:#0078D4;--muted:#CCCCCCCC;--surface:#181818;--border:#CCCCCC;background:var(--bg)">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {
+    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          var(--fg);
+    --_text-sec:      var(--muted, color-mix(in srgb, var(--fg) 60%, var(--bg)));
+    --_text-muted:    var(--muted, color-mix(in srgb, var(--fg) 40%, var(--bg)));
+    --_text-faint:    color-mix(in srgb, var(--fg) 25%, var(--bg));
+    --_line:          var(--line, color-mix(in srgb, var(--fg) 50%, var(--bg)));
+    --_arrow:         var(--accent, color-mix(in srgb, var(--fg) 85%, var(--bg)));
+    --_node-fill:     var(--surface, color-mix(in srgb, var(--fg) 3%, var(--bg)));
+    --_node-stroke:   var(--border, color-mix(in srgb, var(--fg) 20%, var(--bg)));
+    --_group-fill:    var(--bg);
+    --_group-hdr:     color-mix(in srgb, var(--fg) 5%, var(--bg));
+    --_inner-stroke:  color-mix(in srgb, var(--fg) 12%, var(--bg));
+    --_key-badge:     color-mix(in srgb, var(--fg) 10%, var(--bg));
+  }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="5" refX="7" refY="2.5" orient="auto">
+    <polygon points="0 0, 8 2.5, 0 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8" markerHeight="5" refX="1" refY="2.5" orient="auto-start-reverse">
+    <polygon points="8 0, 0 2.5, 8 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<polyline class="edge" data-from="Input" data-to="SIM" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Altera Map de Teclas" points="120.8303333333333,88.9 120.83033333333333,193.5 216.83399999999997,193.5 216.83399999999997,193.2" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="GC" data-to="SIM" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Monta (Lifecycle)" points="268.75666666666666,88.9 268.75666666666666,112.9 250.76449999999994,112.9 250.76449999999994,181.2 245.47599999999997,181.2 245.47599999999997,193.2" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="GC" data-to="PIXI" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Importação Dinâmica" points="315.83799999999997,88.9 315.83799999999997,136.9 373.89599999999996,136.9 373.89599999999996,361.00000000000006 513.293,361.00000000000006 513.293,360.7" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="Time" data-to="SIM" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="60 FPS DeltaTime" points="503.0663333333334,88.9 503.0663333333334,136.9 485.36800000000005,136.9 485.36800000000005,181.2 274.118,181.2 274.118,193.2" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="SIM" data-to="SIM" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Computa Física e Colisões" points="188.19199999999998,205.5 178.19199999999998,205.5 178.19199999999998,217.8 188.19199999999998,217.8" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="Time" data-to="PIXI" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Ticker update" points="563.9796666666667,88.9 563.9796666666667,280.4 581.6780000000001,280.4 581.6780000000001,348.7 550.9883333333333,348.7 550.9883333333333,360.7" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="PIXI" data-to="PIXI" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Lê coordenadas (Lerp)" points="475.59766666666667,373 465.59766666666667,373.00000000000006 465.59766666666667,385.3 475.59766666666667,385.3" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="PIXI" data-to="Screen" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Renderiza Imagens" points="532.1406666666667,397.59999999999997 532.1406666666667,477.90000000000003 423.7423333333333,477.90000000000003 423.7423333333333,489.90000000000003" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="SIM" data-to="HUD" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Callback onStateChange
+(Só altera se mudar o valor)" points="245.47599999999997,230.10000000000002 245.47599999999994,360.7" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="HUD" data-to="Screen" data-style="solid" data-arrow-start="false" data-arrow-end="true" data-label="Re-renderiza React" points="245.47599999999994,397.59999999999997 245.47599999999997,477.90000000000003 377.155,477.90000000000003 377.155,489.90000000000003" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<g class="edge-label" data-from="Input" data-to="SIM" data-label="Altera Map de Teclas">
+  <rect x="61.83033333333332" y="119.9" width="117.44200000000002" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="120.55133333333333" y="135.05" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">Altera Map de Teclas</text>
+</g>
+<g class="edge-label" data-from="GC" data-to="SIM" data-label="Monta (Lifecycle)">
+  <rect x="201.26449999999994" y="119.9" width="98.43400000000003" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="250.48149999999995" y="135.05" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">Monta (Lifecycle)</text>
+</g>
+<g class="edge-label" data-from="GC" data-to="PIXI" data-label="Importação Dinâmica">
+  <rect x="316.39599999999996" y="143.9" width="114.47200000000002" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="373.63199999999995" y="159.05" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">Importação Dinâmica</text>
+</g>
+<g class="edge-label" data-from="Time" data-to="SIM" data-label="60 FPS DeltaTime">
+  <rect x="434.86800000000005" y="143.9" width="100.81000000000002" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="485.2730000000001" y="159.05" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">60 FPS DeltaTime</text>
+</g>
+<g class="edge-label" data-from="SIM" data-to="SIM" data-label="Computa Física e Colisões">
+  <rect x="36.01999999999998" y="196.49999999999994" width="144.17199999999997" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="108.10599999999997" y="211.64999999999995" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">Computa Física e Colisões</text>
+</g>
+<g class="edge-label" data-from="Time" data-to="PIXI" data-label="Ticker update">
+  <rect x="539.6780000000001" y="287.4" width="83.584" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="581.4700000000001" y="302.54999999999995" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">Ticker update</text>
+</g>
+<g class="edge-label" data-from="PIXI" data-to="PIXI" data-label="Lê coordenadas (Lerp)">
+  <rect x="339.46366666666665" y="196.49999999999994" width="128.13400000000001" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="403.53066666666666" y="211.64999999999995" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">Lê coordenadas (Lerp)</text>
+</g>
+<g class="edge-label" data-from="PIXI" data-to="Screen" data-label="Renderiza Imagens">
+  <rect x="477.6406666666666" y="440.6" width="108.53200000000002" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="531.9066666666666" y="455.75" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">Renderiza Imagens</text>
+</g>
+<g class="edge-label" data-from="SIM" data-to="HUD" data-label="Callback onStateChange
+(Só altera se mudar o valor)">
+  <rect x="172.47599999999997" y="273.1" width="145.36" height="44.6" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="245.15599999999998" y="295.40000000000003" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)"><tspan x="245.15599999999998" dy="-3.3000000000000007">Callback onStateChange</tspan><tspan x="245.15599999999998" dy="14.3">(Só altera se mudar o valor)</tspan></text>
+</g>
+<g class="edge-label" data-from="HUD" data-to="Screen" data-label="Re-renderiza React">
+  <rect x="189.97599999999997" y="440.6" width="110.31400000000002" height="30.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="1" />
+  <text x="245.13299999999998" y="455.75" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-sec)" dy="3.8499999999999996">Re-renderiza React</text>
+</g>
+<g class="node" data-id="Input" data-label="Inputs de Teclado" data-shape="rectangle">
+  <rect x="47.9853333333333" y="52" width="145.69" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="120.8303333333333" y="70.45" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">Inputs de Teclado</text>
+</g>
+<g class="node" data-id="GC" data-label="GameCanvas.tsx" data-shape="rectangle">
+  <rect x="221.67533333333333" y="52" width="141.244" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="292.2973333333333" y="70.45" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">GameCanvas.tsx</text>
+</g>
+<g class="node" data-id="SIM" data-label="Simulation.ts" data-shape="rectangle">
+  <rect x="188.19199999999998" y="193.2" width="114.568" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="245.47599999999997" y="211.64999999999998" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">Simulation.ts</text>
+</g>
+<g class="node" data-id="PIXI" data-label="Renderer.ts" data-shape="rectangle">
+  <rect x="475.59766666666667" y="360.7" width="113.086" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="532.1406666666667" y="379.15" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">Renderer.ts</text>
+</g>
+<g class="node" data-id="Time" data-label="requestAnimationFrame" data-shape="rectangle">
+  <rect x="442.153" y="52" width="182.73999999999998" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="533.523" y="70.45" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">requestAnimationFrame</text>
+</g>
+<g class="node" data-id="HUD" data-label="HUD Snapshot State" data-shape="rectangle">
+  <rect x="165.96199999999996" y="360.7" width="159.028" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="245.47599999999994" y="379.15" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">HUD Snapshot State</text>
+</g>
+<g class="node" data-id="Screen" data-label="Tela do Jogador" data-shape="rectangle">
+  <rect x="330.56766666666664" y="489.90000000000003" width="139.762" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="400.44866666666667" y="508.35" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">Tela do Jogador</text>
+</g>
+</svg>
