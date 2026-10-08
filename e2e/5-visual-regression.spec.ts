@@ -22,6 +22,7 @@ test.describe('Regressão visual', () => {
       simulation.stop();
     });
     await expect(page.getByRole('banner', { name: 'Combat Heads-Up Display' })).toBeVisible();
+    await page.evaluate(() => Promise.all(Array.from(document.images, image => image.decode().catch(() => undefined))));
     await expect(page).toHaveScreenshot('stable-arena.png', { animations: 'disabled', caret: 'hide' });
   });
 
