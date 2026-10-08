@@ -16,7 +16,7 @@ This project includes Playwright E2E tests for the core scenarios requested in t
 
 ### 3. Início de partida, movimento, rotação, limites da arena e colisão com ilhas.
 - **Spec:** `3-gameplay.spec.ts`
-- **Description:** Starts a battle, verifies the simulation is attached to the window, triggers `KeyW` to move the ship, and verifies the coordinates update correctly over time.
+- **Description:** Starts a battle, verifies if the simulation is attached to the window, triggers `KeyW` to move the ship, and verifies the coordinates update correctly over time.
 
 ### 4. Disparos frontal e lateral, dano, cooldown e pontuação sem duplicação.
 - **Spec:** `3-gameplay.spec.ts`
