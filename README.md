@@ -1,6 +1,6 @@
-﻿# Pirate Battle - Solution Guide
+# Pirate Battle - Guide
 
-The original challenge statement is in [INSTRUCTIONS.md](INSTRUCTIONS.md).
+The original challenge statement is in [INSTRUCTIONS.md](INSTRUCTIONS.md). Hi! Matty here! Just wanted to make a little guide for those in charge of reviewing my test - this doc has all the steps to setting up a local machine that runs my interation of "Pirate Battle".
 
 ## Local Setup
 
@@ -71,3 +71,20 @@ The repository includes `vercel.json`; deploy the `dist/` output on Vercel, Netl
 - [Architecture and design decisions](ARCHITECTURE.md)
 - [Performance measurements and procedure](PERFORMANCE.md)
 - [E2E coverage map](E2E_TESTS.md)
+- [To-Do list](To-Do-List.md)
+
+## Tools utilized in this project:
+
+- [Github]
+- [Copilot, reviewed.]
+- [Gemini / Antigravity AI, reviewed.]
+- [React]
+- [PixiJS]
+- [TypeScript]
+- [Vite]
+- [Zustand]
+- [TanStack Query]
+- [Axios]
+- [MSW (Mock Service Worker)]
+- [Playwright]
+- [Oxlint]
