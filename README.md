@@ -1,5 +1,7 @@
 # Pirate Battle - Guide
 
+[![CI](https://github.com/TyxMatty/game-developer-challenge/actions/workflows/ci.yml/badge.svg)](https://github.com/TyxMatty/game-developer-challenge/actions/workflows/ci.yml)
+
 The original challenge statement is in [INSTRUCTIONS.md](INSTRUCTIONS.md). Hi! Matty here! Just wanted to make a little guide for those in charge of reviewing my test - this doc has all the steps to setting up a local machine that runs my interation of "Pirate Battle".
 
 ## Local Setup
@@ -29,6 +31,10 @@ No environment variables or private services are required. MSW intercepts the ra
 | `npm run profile` | Profile the production preview build (FPS, frame interval, entities, heap over 5 cycles). Run `npm run build` first; see [PERFORMANCE.md](PERFORMANCE.md). |
 
 Install the Playwright browser once with `npx playwright install chromium` (it must match the installed `@playwright/test` version) before running E2E tests.
+
+## Continuous Integration
+
+GitHub Actions runs lint, type checks, a production build, and the Playwright suite against the production preview on pushes and pull requests targeting `main`. The workflow runs on Windows to match the platform-specific visual baselines. Each run uploads the HTML report; traces and other test artifacts are uploaded when a run fails.
 
 ## Controls
 

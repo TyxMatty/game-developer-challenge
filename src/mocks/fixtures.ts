@@ -1,7 +1,7 @@
 import { type MatchRecord } from '../types/match';
 import { DEFAULT_CONFIG } from '../config/GameConfig';
 
-export const PIRATE_FIXTURES: MatchRecord[] = [
+export const PIRATE_FIXTURES: MatchRecord[] = [ // Fixed mock data for pirate matches, can be removed or edited
   {
     id: 'fix-1',
     playerId: 'p_blackbeard',

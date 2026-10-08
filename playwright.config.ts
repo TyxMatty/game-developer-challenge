@@ -14,7 +14,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0, // Retry failed tests on CI
   workers: 1, // Limit the number of parallel workers to avoid conflicts with MSW / local storage
   outputDir: './test-results',
-  reporter: [['html', { outputFolder: './test-results/playwright-report', open: 'never' }]],
+  reporter: [['html', { outputFolder: './test-report', open: 'never' }]], // HTML report for test results, as asked in the challenge instructions
   use: {
     baseURL,
     screenshot: 'only-on-failure',

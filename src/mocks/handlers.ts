@@ -42,9 +42,9 @@ async function applyScenarioEffects( // VFX function to simulate network and ser
 ) {
   const scenario = getScenario(); // Retrieve the current mock scenario
 
-  if (scenario === 'error_500'
-    || (scenario === 'error_ranking_only' && endpoint === 'ranking')
-    || (scenario === 'error_history_only' && endpoint === 'history')) {
+  if (scenario === 'error_500' // Simulate a server error for all endpoints
+    || (scenario === 'error_ranking_only' && endpoint === 'ranking') // For the ranking endpoint only
+    || (scenario === 'error_history_only' && endpoint === 'history')) { // For the history endpoint only
     await delay(100);
     return HttpResponse.json({ message: 'Simulated server error.' }, { status: 500 });
   }
