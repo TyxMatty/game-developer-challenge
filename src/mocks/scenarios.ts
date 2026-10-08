@@ -9,7 +9,7 @@ export type MockScenario =
   | 'error_history_only'
   | 'network_error'
   | 'timeout_match_post';
-
+  // all possible mock scenarios
 const SCENARIO_STORAGE_KEY = 'pirate_mock_scenario';
 
 export function getScenario(): MockScenario {
@@ -27,8 +27,7 @@ export function getScenario(): MockScenario {
 export function setScenario(scenario: MockScenario) {
   try {
     localStorage.setItem(SCENARIO_STORAGE_KEY, scenario);
-    // Reload to apply new service worker rules immediately (optional but helps ensure clear state)
-    // Actually, MSW evaluates per request, so no reload is strictly necessary.
+    // MSW evaluates per request, so no reload is strictly necessary.
   } catch (e) {
     console.warn('Failed to set mock scenario', e);
   }

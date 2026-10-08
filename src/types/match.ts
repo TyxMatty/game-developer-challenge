@@ -3,14 +3,14 @@ import { type GameConfig } from '../config/GameConfig';
 export type TerminationReason = 'victory' | 'defeat' | 'time_out';
 
 export interface MatchRecord {
-  id: string; // Unique match identifier
+  id: string; // Match ID, will be used 
   playerId: string;
   playerName: string;
-  date: string; // ISO 8601 string
+  date: string; 
   score: number;
   duration: number; // Effective duration in seconds
   reason: TerminationReason;
-  config: GameConfig; // Immutable snapshot of config used
+  config: GameConfig; 
 }
 
 export interface RankingEntry {

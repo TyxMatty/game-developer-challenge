@@ -89,7 +89,7 @@ export class Renderer {
       waterBg.height = this.app.screen.height;
     });
 
-    const shipTexture = await stepLoad(assetUrls[1]);
+    const shipTexture = await stepLoad(assetUrls[1]); 
     this.texChaser = await stepLoad(assetUrls[2]);
     this.texShooter = await stepLoad(assetUrls[3]);
     this.texEnemyHpFrame = await stepLoad(assetUrls[4]);
@@ -129,7 +129,7 @@ export class Renderer {
     this.app.ticker.add(this.render);
   }
   
-  private spawnExplosion(x: number, y: number) {
+  private spawnExplosion(x: number, y: number) { // Spawns an explosion effect at the specified coordinates
     const sprite = new PIXI.Sprite(this.texExplosions[0]);
     sprite.anchor.set(0.5);
     sprite.x = x;
@@ -153,7 +153,7 @@ export class Renderer {
   }
 
   // Ships darken toward a charred red-brown as health drops.
-  private static damageTint(percent: number): number {
+  private static damageTint(percent: number): number { // Calculates the color tint for a ship based on its damage percentage
     const t = Math.min(1, Math.max(0, percent));
     const r = Math.round(255 * (0.55 + 0.45 * t));
     const g = Math.round(255 * (0.35 + 0.65 * t));
@@ -161,7 +161,7 @@ export class Renderer {
     return (r << 16) | (g << 8) | b;
   }
 
-  private createProjectileSprite(): PIXI.Graphics {
+  private createProjectileSprite(): PIXI.Graphics { // Creates a new PIXI.Graphics object representing a projectile
     const graphics = new PIXI.Graphics();
     graphics.circle(0, 0, 5); 
     graphics.fill({ color: 0x222222 }); 
@@ -170,8 +170,8 @@ export class Renderer {
     return graphics;
   }
 
-  private render = (ticker: PIXI.Ticker) => {
-    // 0. Sincroniza Ilhas
+  private render = (ticker: PIXI.Ticker) => { // Synchronize the game state with the visual representation
+    // 0. Synchronize Islands
     if (this.islandSprites.length !== this.simulation.islands.length) {
       for (const g of this.islandSprites) this.app.stage.removeChild(g);
       this.islandSprites = [];
@@ -187,7 +187,7 @@ export class Renderer {
       }
     }
 
-    // 1. Sincroniza Jogador
+    // 1. Synchronize Player
     this.playerContainer.x = this.simulation.player.x;
     this.playerContainer.y = this.simulation.player.y;
     // Adicionamos Math.PI para inverter a frente do navio visualmente
@@ -204,7 +204,7 @@ export class Renderer {
       pHpMask.fill({ color: 0xffffff }); 
     }
 
-    // 2. Sincroniza Projéteis
+    // 2. Synchronize Projectiles
     const currentProjIds = new Set<number>();
     for (const p of this.simulation.projectiles) {
       currentProjIds.add(p.id);
@@ -250,7 +250,7 @@ export class Renderer {
       }
     }
 
-    // 3. Sincroniza Inimigos
+    // 3. Synchronize Enemies
     const currentEnemyIds = new Set<number>();
     for (const e of this.simulation.enemies) {
       currentEnemyIds.add(e.id);
@@ -317,7 +317,7 @@ export class Renderer {
       }
     }
     
-    // 4. Sincroniza Explosões
+    // 4. Synchronize Explosions 
     for (let i = this.activeExplosions.length - 1; i >= 0; i--) {
       const exp = this.activeExplosions[i];
       exp.age += ticker.deltaMS;
@@ -333,13 +333,13 @@ export class Renderer {
     }
   }
 
-  destroy() {
+  destroy() { // Public method to destroy the renderer and clean up resources
     if (this.destroyed) return;
     this.destroyed = true;
     this.destroyApp();
   }
 
-  private destroyApp() {
+  private destroyApp() { // Destroys the PIXI application and cleans up resources
     if (!this.appInitialized || this.appDestroyed) return;
     this.appDestroyed = true;
     this.app.destroy(

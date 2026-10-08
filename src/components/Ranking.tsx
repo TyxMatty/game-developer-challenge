@@ -7,7 +7,7 @@ interface RankingProps {
   onBack: () => void;
 }
 
-export default function Ranking({ onBack }: RankingProps) {
+export default function Ranking({ onBack }: RankingProps) { // Ranking modal component displaying the Hall of Fame with configuration filters and pagination.
   const currentConfig = loadLocalConfig();
   const [page, setPage] = useState<number>(1);
   const [sessionTime, setSessionTime] = useState<number>(currentConfig.sessionTime);

@@ -1,3 +1,4 @@
+// Game configuration interface and default values for the game.
 export interface GameConfig {
   sessionTime: number; // in seconds
   spawnInterval: number; // in seconds

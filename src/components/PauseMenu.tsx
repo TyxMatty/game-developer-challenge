@@ -8,7 +8,7 @@ interface PauseMenuProps {
   isAutoPaused?: boolean;
 }
 
-export default function PauseMenu({ onResume, onOptions, onQuit, isAutoPaused }: PauseMenuProps) {
+export default function PauseMenu({ onResume, onOptions, onQuit, isAutoPaused }: PauseMenuProps) { // Pause menu modal component with resume, options, and quit buttons.
   const resumeBtnRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useDialogFocus<HTMLDivElement>({
     initialFocusRef: resumeBtnRef,

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-export function useFocusTrap(ref: React.RefObject<HTMLElement | null>) {
+export function useFocusTrap(ref: React.RefObject<HTMLElement | null>) { // Hook to trap focus within a container
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Tab') return;

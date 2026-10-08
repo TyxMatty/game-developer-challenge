@@ -26,7 +26,7 @@ export default function ResultsModal({ matchResult, onPlayAgain, onMainMenu }: R
   const isVictory = matchResult.reason === 'victory';
   const isTimeOut = matchResult.reason === 'time_out';
 
-  return (
+  return ( // Styled modal overlay and content container for the results modal
     <div
       ref={dialogRef}
       role="dialog"

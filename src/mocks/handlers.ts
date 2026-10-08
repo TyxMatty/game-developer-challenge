@@ -5,7 +5,7 @@ import { getScenario } from './scenarios';
 
 const MATCHES_STORAGE_KEY = 'pirate_matches_db';
 
-function getStoredMatches(): MatchRecord[] {
+function getStoredMatches(): MatchRecord[] { // Final function to retrieve stored matches from localStorage
   try {
     const raw = localStorage.getItem(MATCHES_STORAGE_KEY);
     if (raw) {
@@ -18,7 +18,7 @@ function getStoredMatches(): MatchRecord[] {
   return [];
 }
 
-function saveStoredMatches(matches: MatchRecord[]) {
+function saveStoredMatches(matches: MatchRecord[]) { // Final function to save matches to localStorage
   try {
     localStorage.setItem(MATCHES_STORAGE_KEY, JSON.stringify(matches));
   } catch (e) {
@@ -35,12 +35,12 @@ function sortDeterministic(a: { score: number; duration: number; date: string; i
   return a.id.localeCompare(b.id);
 }
 
-async function applyScenarioEffects(
+async function applyScenarioEffects( // VFX function to simulate network and server effects based on the current scenario
   method: 'GET' | 'POST',
   endpoint: 'ranking' | 'history' | 'match',
   request: Request,
 ) {
-  const scenario = getScenario();
+  const scenario = getScenario(); // Retrieve the current mock scenario
 
   if (scenario === 'error_500'
     || (scenario === 'error_ranking_only' && endpoint === 'ranking')
@@ -75,7 +75,7 @@ async function applyScenarioEffects(
   }
 }
 
-export const handlers = [
+export const handlers = [ // Array of request handlers for the mock service worker
   // 1. Ranking endpoint
   http.get('/api/ranking', async ({ request }) => {
     const errorResponse = await applyScenarioEffects('GET', 'ranking', request);
