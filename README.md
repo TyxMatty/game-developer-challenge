@@ -77,7 +77,7 @@ The repository includes `vercel.json`; deploy the `dist/` output on Vercel, Netl
 
 - [Github]
 - [Copilot, reviewed.]
-- [Gemini / Antigravity AI, reviewed.]
+- [Claude code, reviewed.]
 - [React]
 - [PixiJS]
 - [TypeScript]
