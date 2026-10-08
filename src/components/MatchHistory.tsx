@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMatchHistory, useFlushPendingMatches } from '../api/queries';
 import { getPendingMatches } from '../api/client';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 
 interface MatchHistoryProps {
   onBack: () => void;
@@ -9,6 +10,7 @@ interface MatchHistoryProps {
 export default function MatchHistory({ onBack }: MatchHistoryProps) {
   const [page, setPage] = useState<number>(1);
   const pending = getPendingMatches();
+  const dialogRef = useDialogFocus<HTMLDivElement>({ onEscape: onBack });
 
   const { data, isLoading, isError, error, refetch, isFetching } = useMatchHistory({
     page,
@@ -32,9 +34,11 @@ export default function MatchHistory({ onBack }: MatchHistoryProps) {
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="history-title"
+      tabIndex={-1}
       style={{
         position: 'absolute',
         inset: 0,

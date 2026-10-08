@@ -1,6 +1,22 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Options Navigation, Validation, and Persistence', () => {
+  test('should contain keyboard focus and close with Escape', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Game Options' }).click();
+    await expect(page.getByRole('dialog', { name: 'Battle Options' })).toBeVisible();
+
+    const firstControl = page.getByRole('button', { name: 'Increase session time by 15s' });
+    const lastControl = page.getByRole('button', { name: 'Back' });
+    await expect(firstControl).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(lastControl).toBeFocused();
+    await page.keyboard.press('Escape');
+
+    await expect(page.getByRole('button', { name: 'Start Battle' })).toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+  });
+
   test('should navigate to options, validate inputs, save, and persist after refresh', async ({ page }) => {
     await page.goto('/');
     

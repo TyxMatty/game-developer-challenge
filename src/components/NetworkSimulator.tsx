@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react'; // React import for component and hooks
+import React, { useState } from 'react'; // React import for component and hooks
 import { type MockScenario, getScenario, setScenario, resetScenarioState } from '../mocks/scenarios'; 
 
 const SCENARIOS: { value: MockScenario; label: string }[] = [ // List of available network scenarios, will be used in Network Simulator
   { value: 'success', label: 'Success (Normal)' }, 
   { value: 'empty_lists', label: 'Empty Lists (Ranking/History)' },
-  { value: 'slow_variable', label: 'Slow & Variable Latency' },
+  { value: 'slow_variable', label: 'Slow, Reproducible Variable Latency' },
+  { value: 'out_of_order', label: 'Out-of-Order Ranking/History Responses' },
   { value: 'error_500', label: '500 Internal Server Error' },
+  { value: 'error_400', label: '400 Bad Request' },
+  { value: 'error_ranking_only', label: 'Ranking Endpoint Failure' },
+  { value: 'error_history_only', label: 'History Endpoint Failure' },
   { value: 'network_error', label: 'Network Error (Immediate)' },
   { value: 'timeout_match_post', label: 'Timeout on Match POST' },
 ];
 
 export const NetworkSimulator: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentScenario, setCurrentScenario] = useState<MockScenario>('success');
-
-  useEffect(() => {
-    setCurrentScenario(getScenario());
-  }, []);
+  const [currentScenario, setCurrentScenario] = useState<MockScenario>(() => getScenario());
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value as MockScenario;
@@ -33,6 +33,7 @@ export const NetworkSimulator: React.FC = () => {
   if (!isOpen) {
     return (
       <button 
+        className="network-simulator-trigger"
         onClick={() => setIsOpen(true)}
         style={{
           position: 'fixed',
@@ -54,7 +55,7 @@ export const NetworkSimulator: React.FC = () => {
   }
 
   return (
-    <div style={{
+    <div className="network-simulator-panel" style={{
       position: 'fixed',
       bottom: '10px',
       right: '10px',

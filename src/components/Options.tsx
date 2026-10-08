@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { loadLocalConfig, saveLocalConfig, CONFIG_LIMITS, type GameConfig } from '../config/GameConfig';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 
 interface OptionsProps {
   onBack: () => void;
@@ -8,11 +9,7 @@ interface OptionsProps {
 export default function Options({ onBack }: OptionsProps) {
   const [config, setConfig] = useState<GameConfig>(() => loadLocalConfig());
   const [savedMessage, setSavedMessage] = useState<string>('');
-  const backBtnRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    backBtnRef.current?.focus();
-  }, []);
+  const dialogRef = useDialogFocus<HTMLDivElement>({ onEscape: onBack });
 
   const handleSessionTimeChange = (delta: number) => {
     const limits = CONFIG_LIMITS.sessionTime;
@@ -41,9 +38,11 @@ export default function Options({ onBack }: OptionsProps) {
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="options-title"
+      tabIndex={-1}
       style={{
         position: 'absolute',
         inset: 0,
@@ -191,7 +190,6 @@ export default function Options({ onBack }: OptionsProps) {
           </button>
 
           <button
-            ref={backBtnRef}
             type="button"
             onClick={onBack}
             style={{

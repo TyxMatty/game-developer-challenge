@@ -2,7 +2,11 @@ export type MockScenario =
   | 'success'
   | 'empty_lists'
   | 'slow_variable'
+  | 'out_of_order'
   | 'error_500'
+  | 'error_400'
+  | 'error_ranking_only'
+  | 'error_history_only'
   | 'network_error'
   | 'timeout_match_post';
 

@@ -43,15 +43,15 @@ The Options screen persists the session duration (60-180 seconds in 15-second st
 
 ## Network Scenarios
 
-Open **MSW DevTools** in the lower-right corner to select a scenario. The selection applies to new requests and persists in local storage. Available scenarios are `success`, `empty_lists`, `slow_variable`, `error_500`, `network_error`, and `timeout_match_post`.
+Open **MSW DevTools** to select a scenario. On mobile its trigger is positioned above the touch controls. The selection applies to new requests and persists in local storage. Available scenarios are `success`, `empty_lists`, deterministic `slow_variable`, `out_of_order` (ranking delayed 800 ms; history delayed 100 ms), `error_400`, `error_500`, `error_ranking_only`, `error_history_only`, `network_error`, and `timeout_match_post`.
 
 To reproduce deferred match submission, select **Timeout on Match POST**, complete a match, then select **Success (Normal)** and use the pending-match retry action. The mock stores the match before returning the delayed response, so the same match ID must not create a duplicate on retry. **Reset State & Reload** clears the mock scenario, stored mock matches, last completed match, and pending queue.
 
 ## Test and Failure Reproduction
 
-Run the full suite with `npm run test:e2e`. The Playwright projects cover desktop Chromium and Pixel 5 emulation; the touch-only test is skipped on desktop by design. On failure, inspect the generated Playwright HTML report and trace artifacts under `playwright-report/` and `test-results/`.
+Run the full suite with `npm run test:e2e`. The Playwright projects cover desktop Chromium and Pixel 5 emulation; the touch-only test is skipped on desktop by design. The current suite has 24 cases and includes versioned baselines for the menu, stable arena, and result view. On failure, inspect the generated Playwright HTML report and trace artifacts under `playwright-report/` and `test-results/`. Regenerate approved visual baselines with `npx playwright test e2e/5-visual-regression.spec.ts --update-snapshots`.
 
-Current automated tests cover options persistence, asset-load failure and retry, score, movement/shooting, pause and focus-loss pause, touch movement, ranking/match registration, timeout recovery, and mock reset. They do not yet cover every item in the challenge checklist, including visual baselines, all collision and enemy-AI edge cases, death/restart, pagination, or out-of-order network responses.
+The latest compatibility-config run completed with 47 passes and one expected desktop-only skip. The suite covers options persistence, asset failure/retry, scoring, enemy distribution and behaviors, arena bounds/island collision, pause and focus loss, match preservation through Options, touch movement, ranking pagination, out-of-order and endpoint-specific failures, HTTP 400/500, match persistence/retry, and visual baselines. Remaining gaps include full cooldown timing, death/restart reset assertions, projectile-island collision, and E2E against the production preview/deployed build.
 
 ## Deployment
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Simulation } from '../game/Simulation';
-import { Renderer } from '../game/Renderer';
+import type { Renderer } from '../game/Renderer';
 import HUD from './HUD';
 import PauseMenu from './PauseMenu';
 import MobileControls from './MobileControls';
@@ -33,12 +33,7 @@ export default function GameCanvas({ config, onGameOver, onQuit, onOpenOptions }
     score: 0,
   }));
 
-  // Touch device detection
-  const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
-  useEffect(() => {
-    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    setIsTouchDevice(hasTouch);
-  }, []);
+  const [isTouchDevice] = useState(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0);
 
   const handlePause = useCallback((auto = false) => { // This method handles pausing the game, either manually or automatically
     if (simulationRef.current && simulationRef.current.isRunning && !simulationRef.current.isPaused) {
@@ -61,11 +56,9 @@ export default function GameCanvas({ config, onGameOver, onQuit, onOpenOptions }
 
     // Create match simulation with immutable snapshot
     const simulation = new Simulation(config);
-    const renderer = new Renderer(simulation);
-
     simulationRef.current = simulation;
-    rendererRef.current = renderer;
     let mounted = true;
+    let renderer: Renderer | null = null;
 
     simulation.onStateChange = (state) => {
       if (!mounted) return;
@@ -88,21 +81,28 @@ export default function GameCanvas({ config, onGameOver, onQuit, onOpenOptions }
     };
 
     // Asset loading with progress feedback
-    renderer
-      .init(containerRef.current, (progress) => {
-        if (mounted) {
-          setLoadProgress(Math.min(100, Math.round(progress * 100)));
-        }
+    void import('../game/Renderer')
+      .then(({ Renderer: PixiRenderer }) => {
+        if (!mounted) return;
+        renderer = new PixiRenderer(simulation);
+        rendererRef.current = renderer;
+        return renderer.init(containerRef.current!, (progress) => {
+          if (mounted) {
+            setLoadProgress(Math.min(100, Math.round(progress * 100)));
+          }
+        });
       })
       .then(() => {
         if (!mounted) {
-          renderer.destroy();
+          renderer?.destroy();
           return;
         }
+        if (!renderer) return;
         setIsLoading(false);
         simulation.start();
       })
       .catch((error: unknown) => {
+        renderer?.destroy();
         if (!mounted) return;
         setIsLoading(false);
         setLoadError(error instanceof Error ? error.message : 'Unable to load game assets.');
@@ -142,7 +142,7 @@ export default function GameCanvas({ config, onGameOver, onQuit, onOpenOptions }
       window.removeEventListener('keydown', handleKeyDown);
 
       simulation.destroy();
-      renderer.destroy();
+      renderer?.destroy();
       simulationRef.current = null;
       rendererRef.current = null;
     };
@@ -261,7 +261,7 @@ export default function GameCanvas({ config, onGameOver, onQuit, onOpenOptions }
       {/* Mobile Touch Controls */}
       {!isLoading && isTouchDevice && (
         <MobileControls
-          simulation={simulationRef.current}
+          simulationRef={simulationRef}
         />
       )}
 

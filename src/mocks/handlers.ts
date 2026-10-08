@@ -35,22 +35,40 @@ function sortDeterministic(a: { score: number; duration: number; date: string; i
   return a.id.localeCompare(b.id);
 }
 
-async function applyScenarioEffects(method: 'GET' | 'POST') {
+async function applyScenarioEffects(
+  method: 'GET' | 'POST',
+  endpoint: 'ranking' | 'history' | 'match',
+  request: Request,
+) {
   const scenario = getScenario();
-  
-  if (scenario === 'error_500') {
+
+  if (scenario === 'error_500'
+    || (scenario === 'error_ranking_only' && endpoint === 'ranking')
+    || (scenario === 'error_history_only' && endpoint === 'history')) {
     await delay(100);
-    throw new HttpResponse(null, { status: 500, statusText: 'Internal Server Error' });
+    return HttpResponse.json({ message: 'Simulated server error.' }, { status: 500 });
   }
-  
+
+  if (scenario === 'error_400') {
+    return HttpResponse.json({ message: 'Simulated bad request.' }, { status: 400 });
+  }
+
   if (scenario === 'network_error') {
     await delay(50);
     return HttpResponse.error();
   }
-  
+
+  if (scenario === 'out_of_order' && method === 'GET') {
+    await delay(endpoint === 'ranking' ? 800 : 100);
+    return;
+  }
+
   if (scenario === 'slow_variable') {
-    const randomDelay = Math.floor(Math.random() * 2000) + 1000; // 1s to 3s
-    await delay(randomDelay);
+    const url = new URL(request.url);
+    const page = Math.max(1, Number(url.searchParams.get('page') || 1));
+    const endpointOffset = endpoint === 'history' ? 1 : endpoint === 'match' ? 2 : 0;
+    const stableDelay = 250 + ((page + endpointOffset) % 3) * 250;
+    await delay(stableDelay);
   } else {
     // default realistic latency
     await delay(method === 'GET' ? 120 : 150);
@@ -60,7 +78,7 @@ async function applyScenarioEffects(method: 'GET' | 'POST') {
 export const handlers = [
   // 1. Ranking endpoint
   http.get('/api/ranking', async ({ request }) => {
-    const errorResponse = await applyScenarioEffects('GET');
+    const errorResponse = await applyScenarioEffects('GET', 'ranking', request);
     if (errorResponse) return errorResponse;
 
     const scenario = getScenario();
@@ -117,7 +135,7 @@ export const handlers = [
 
   // 2. Match History endpoint
   http.get('/api/history', async ({ request }) => {
-    const errorResponse = await applyScenarioEffects('GET');
+    const errorResponse = await applyScenarioEffects('GET', 'history', request);
     if (errorResponse) return errorResponse;
 
     const scenario = getScenario();
@@ -178,7 +196,7 @@ export const handlers = [
       return HttpResponse.json(matchData, { status: 201 });
     }
 
-    const errorResponse = await applyScenarioEffects('POST');
+    const errorResponse = await applyScenarioEffects('POST', 'match', request);
     if (errorResponse) return errorResponse;
 
     const latest = getStoredMatches();

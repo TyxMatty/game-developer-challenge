@@ -25,6 +25,9 @@ export class Renderer {
   
   private texExplosions: PIXI.Texture[] = [];
   private activeExplosions: Explosion[] = [];
+  private destroyed = false;
+  private appInitialized = false;
+  private appDestroyed = false;
 
   constructor(simulation: Simulation) {
     this.simulation = simulation;
@@ -39,6 +42,11 @@ export class Renderer {
       autoDensity: true,
       resolution: window.devicePixelRatio || 1,
     });
+    this.appInitialized = true;
+    if (this.destroyed) {
+      this.destroyApp();
+      return;
+    }
     onProgress?.(0.2);
 
     container.appendChild(this.app.canvas);
@@ -59,6 +67,7 @@ export class Renderer {
     let loaded = 0;
     const stepLoad = async (url: string) => {
       const tex = await PIXI.Assets.load(url);
+      if (this.destroyed) throw new Error('Renderer initialization was cancelled.');
       loaded++;
       onProgress?.(0.2 + (loaded / assetUrls.length) * 0.8);
       return tex;
@@ -276,10 +285,17 @@ export class Renderer {
   }
 
   destroy() {
-    try {
-      this.app.destroy(true, { children: true });
-    } catch (e) {
-      // Ignora aviso interno do PixiJS v8 ao destruir container com resizeTo
-    }
+    if (this.destroyed) return;
+    this.destroyed = true;
+    this.destroyApp();
+  }
+
+  private destroyApp() {
+    if (!this.appInitialized || this.appDestroyed) return;
+    this.appDestroyed = true;
+    this.app.destroy(
+      { removeView: true, releaseGlobalResources: false },
+      { children: true },
+    );
   }
 }

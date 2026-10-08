@@ -1,21 +1,23 @@
+import { type RefObject } from 'react';
 import { type Simulation } from '../game/Simulation';
 
 interface MobileControlsProps {
-  simulation: Simulation | null;
+  simulationRef: RefObject<Simulation | null>;
 }
 
-export default function MobileControls({ simulation }: MobileControlsProps) {
-  if (!simulation) return null;
-
+export default function MobileControls({ simulationRef }: MobileControlsProps) {
   const setInput = (key: keyof Simulation['input'], value: boolean) => {
-    if (simulation && simulation.isRunning && !simulation.isPaused) {
-      simulation.input[key] = value;
-    }
+    simulationRef.current?.setInput(key, value);
   };
 
   const bindButton = (key: keyof Simulation['input']) => ({
     onPointerDown: (e: React.PointerEvent) => {
       e.preventDefault();
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        // Synthetic pointer events do not have an active pointer to capture.
+      }
       setInput(key, true);
     },
     onPointerUp: (e: React.PointerEvent) => {
@@ -26,6 +28,7 @@ export default function MobileControls({ simulation }: MobileControlsProps) {
       e.preventDefault();
       setInput(key, false);
     },
+    onLostPointerCapture: () => setInput(key, false),
     onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
   });
 

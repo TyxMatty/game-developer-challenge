@@ -106,7 +106,7 @@ export default function App() {
         )}
 
         {/* Combat Canvas */}
-        {currentScreen === 'PLAYING' && activeConfigSnapshot && (
+        {(currentScreen === 'PLAYING' || (currentScreen === 'OPTIONS' && previousScreen === 'PLAYING')) && activeConfigSnapshot && (
           <GameCanvas
             config={activeConfigSnapshot}
             onGameOver={handleGameOver}

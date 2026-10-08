@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { type MatchRecord } from '../types/match';
 import { useRecordMatch } from '../api/queries';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 
 interface ResultsModalProps {
   matchResult: MatchRecord;
@@ -12,10 +13,9 @@ export default function ResultsModal({ matchResult, onPlayAgain, onMainMenu }: R
   const { mutate: recordMatch, isPending, isSuccess, isError, error } = useRecordMatch();
   const hasSubmittedRef = useRef(false);
   const playAgainBtnRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useDialogFocus<HTMLDivElement>({ initialFocusRef: playAgainBtnRef });
 
   useEffect(() => {
-    playAgainBtnRef.current?.focus();
-
     // Submit once upon opening modal
     if (!hasSubmittedRef.current) {
       hasSubmittedRef.current = true;
@@ -28,9 +28,11 @@ export default function ResultsModal({ matchResult, onPlayAgain, onMainMenu }: R
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="results-title"
+      tabIndex={-1}
       style={{
         position: 'absolute',
         inset: 0,

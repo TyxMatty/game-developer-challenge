@@ -51,3 +51,20 @@ button:focus-visible,
     --control-icon-size: 22px !important;
   }
 }
+
+@media (max-width: 500px) {
+  .network-simulator-trigger {
+    top: 112px !important;
+    bottom: auto !important;
+    right: 8px !important;
+  }
+
+  .network-simulator-panel {
+    top: 112px !important;
+    bottom: auto !important;
+    right: 8px !important;
+    width: min(300px, calc(100vw - 16px)) !important;
+    max-height: calc(100dvh - 124px) !important;
+    overflow-y: auto !important;
+  }
+}

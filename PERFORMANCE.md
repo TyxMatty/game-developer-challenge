@@ -12,6 +12,8 @@ No reproducible production-build profiling evidence is currently available in th
 | Heap behavior over five start/play/exit cycles | Not measured with retained snapshots |
 | Chrome Performance and Memory evidence | Not attached |
 
+The production build on 2026-10-07 reported an entry chunk of 757.60 kB (265.02 kB gzip) and a separate renderer chunk of 262.70 kB (76.44 kB gzip). This confirms the Pixi renderer is split from the menu's initial entry bundle, but the entry still exceeds Vite's 500 kB warning threshold. Bundle size is not a substitute for runtime profiling.
+
 ## Reproducible Measurement Procedure
 
 1. Run `npm ci`, `npm run build`, and `npm run preview`; profile the preview build, not the Vite development server.
@@ -26,7 +28,7 @@ No reproducible production-build profiling evidence is currently available in th
 - `Simulation.update()` caps each frame delta at 0.1 seconds. This limits large catch-up updates but does not itself prove a 60 FPS result.
 - `resolvePhysics()` checks pairs among the player and enemies, making ship-to-ship checks quadratic in the number of ships. The simulation currently stops spawning after 50 active enemies.
 - `Renderer.render()` creates sets while synchronizing projectile and enemy IDs and updates health-bar masks each ticker frame. These paths should be included in a measured performance trace before optimization claims are made.
-- `Renderer.destroy()` destroys the PixiJS application, but PixiJS assets are managed by a global cache and are not explicitly unloaded by URL. Memory conclusions require snapshots and should distinguish JavaScript heap from GPU resources.
+- `GameCanvas` dynamically imports PixiJS for gameplay. `Renderer.destroy()` keeps global caches intact to avoid invalidating shared resources; assets are not explicitly unloaded by URL. Memory conclusions require snapshots and should distinguish JavaScript heap from GPU resources.
 
 ## Result Log
 

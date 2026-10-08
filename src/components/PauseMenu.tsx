@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 
 interface PauseMenuProps {
   onResume: () => void;
@@ -9,25 +10,18 @@ interface PauseMenuProps {
 
 export default function PauseMenu({ onResume, onOptions, onQuit, isAutoPaused }: PauseMenuProps) {
   const resumeBtnRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    resumeBtnRef.current?.focus();
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onResume();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onResume]);
+  const dialogRef = useDialogFocus<HTMLDivElement>({
+    initialFocusRef: resumeBtnRef,
+    onEscape: onResume,
+  });
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="pause-title"
+      tabIndex={-1}
       style={{
         position: 'absolute',
         inset: 0,

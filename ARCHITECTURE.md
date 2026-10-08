@@ -18,7 +18,7 @@ The PixiJS ticker reads simulation state and updates display objects. React rece
 
 Player and enemy movement is clamped to the viewport and resolved against island circles. Projectiles advance by their configured speed and direction and are removed on expiration, arena exit, island impact, or a single successful hit. Front cannons create one projectile; each broadside creates three and uses its own cooldown. Defeating an enemy with a player projectile awards one point. Chaser collision damages the player and removes the Chaser without awarding a point.
 
-Enemy spawns are selected from the configured Chaser ratio. A 50/50 ratio does not guarantee that both enemy types appear in every individual match. Shooter movement and firing use the configured range with a firing threshold that currently includes an additional 100 pixels.
+Enemy type ratios are normalized before selection. When both ratios are positive, the first two spawns guarantee one Chaser and one Shooter; subsequent spawns use the configured distribution. Spawn searches are bounded and skip candidates that are too close to the player or islands. Shooter firing is limited to the configured range.
 
 ## Configuration and Persistence
 
@@ -26,7 +26,7 @@ Enemy spawns are selected from the configured Chaser ratio. A 50/50 ratio does n
 
 ## Assets and Resource Lifecycle
 
-`Renderer.init()` initializes PixiJS, attaches its canvas, loads the water, ship, HUD, and explosion textures, and reports loading progress. Loaded texture references are reused for new entities within the renderer instance. `GameCanvas` cleanup stops and destroys the simulation, removes its keyboard listeners, destroys the Pixi application, and clears component references. The app is mounted under React `StrictMode`.
+`GameCanvas` dynamically imports the Pixi renderer only after entering combat. `Renderer.init()` initializes PixiJS, attaches its canvas, loads the water, ship, HUD, and explosion textures, and reports loading progress. Loaded texture references are reused for new entities within the renderer instance. `GameCanvas` cleanup stops and destroys the simulation, removes its keyboard listeners, destroys the Pixi application, and clears component references. Renderer teardown is idempotent, retains PixiJS global resource caches, and handles asynchronous initialization cancellation. Failed asset loading destroys the renderer before presenting retry UI. The app is mounted under React `StrictMode`.
 
 The PixiJS asset cache is global. This implementation does not explicitly unload every cached URL after a match, so renderer destruction should not be interpreted as proof that all shared cached textures have been evicted from memory.
 
@@ -36,10 +36,18 @@ The PixiJS asset cache is global. This implementation does not explicitly unload
 
 MSW handlers in `src/mocks/handlers.ts` implement the API in the browser. They combine fixtures with locally stored submitted matches, filter ranking entries by session configuration, sort deterministically, and paginate results. Repeated registration with the same match ID returns the existing record. `NetworkSimulator` selects a scenario persisted in local storage; its reset action clears the scenario, mock records, last result, and pending queue, then reloads the page.
 
+Available network scenarios include reproducible variable latency, history returning before delayed ranking, global HTTP 400/500 errors, ranking-only and history-only failures, network errors, empty lists, and delayed match registration that can recover idempotently after a client timeout.
+
+## Accessible Dialogs and Mobile Input
+
+`src/hooks/useDialogFocus.ts` focuses the first relevant control, wraps Tab/Shift+Tab, redirects focus that escapes a modal, supports contextual Escape actions, and restores the previous focus target on close. Touch controls use pointer capture and release their input on pointer-up, cancellation, or capture loss. The MSW trigger moves above the touch controls on narrow screens.
+
+## Build Loading
+
+The Pixi renderer is a separate dynamic chunk and is imported when gameplay starts rather than with the main menu. A production build on 2026-10-07 reported a 757.60 kB (265.02 kB gzip) entry chunk and a 262.70 kB (76.44 kB gzip) renderer chunk. This is bundle-size evidence only; it does not measure browser download timing, frame rate, or memory.
+
 ## Known Limitations
 
-- Current network scenarios do not include out-of-order responses or endpoint-specific ranking/history failures.
-- `slow_variable` uses `Math.random()`, so its latency is not deterministic.
-- The current Playwright suite does not cover every requirement in the challenge, and no visual comparison baselines are configured.
+- The current Playwright suite does not cover every requirement in the challenge; see the remaining gaps in `README.md`.
 - Production profiling and a public deployment have not been verified; see `PERFORMANCE.md` and the Deployment section in `README.md`.
 

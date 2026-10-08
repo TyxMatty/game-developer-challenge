@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useRanking } from '../api/queries';
 import { loadLocalConfig } from '../config/GameConfig';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 
 interface RankingProps {
   onBack: () => void;
@@ -11,6 +12,7 @@ export default function Ranking({ onBack }: RankingProps) {
   const [page, setPage] = useState<number>(1);
   const [sessionTime, setSessionTime] = useState<number>(currentConfig.sessionTime);
   const [spawnInterval, setSpawnInterval] = useState<number>(currentConfig.spawnInterval);
+  const dialogRef = useDialogFocus<HTMLDivElement>({ onEscape: onBack });
 
   const { data, isLoading, isError, error, refetch, isFetching } = useRanking({
     page,
@@ -21,9 +23,11 @@ export default function Ranking({ onBack }: RankingProps) {
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="ranking-title"
+      tabIndex={-1}
       style={{
         position: 'absolute',
         inset: 0,

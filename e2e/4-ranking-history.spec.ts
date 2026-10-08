@@ -1,6 +1,75 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Ranking and History (TanStack + MSW)', () => {
+  test('should render ranking pages with the matching fixture set', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Ranking Hall of Fame' }).click();
+    await expect(page.getByRole('row', { name: /Edward "Blackbeard" Teach/ })).toBeVisible();
+    await page.getByRole('button', { name: /Next/ }).click();
+    await expect(page.getByRole('row', { name: /Mary Read/ })).toBeVisible();
+    await expect(page.getByRole('row', { name: /Edward "Blackbeard" Teach/ })).toHaveCount(0);
+  });
+
+  test('should return history before a delayed ranking response', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('pirate_mock_scenario', 'out_of_order'));
+    const responseOrder: string[] = [];
+    page.on('response', response => {
+      const pathname = new URL(response.url()).pathname;
+      if (pathname === '/api/ranking' || pathname === '/api/history') responseOrder.push(pathname);
+    });
+
+    await page.goto('/');
+    const rankingRequest = page.waitForRequest(request => new URL(request.url()).pathname === '/api/ranking');
+    await page.getByRole('button', { name: 'Ranking Hall of Fame' }).click();
+    await rankingRequest;
+    await page.getByRole('button', { name: 'Back' }).click();
+
+    const historyResponse = page.waitForResponse(response => new URL(response.url()).pathname === '/api/history');
+    await page.getByRole('button', { name: 'Match History' }).click();
+    await historyResponse;
+    await expect(page.getByText(/No completed battles/)).toBeVisible();
+    await expect.poll(() => responseOrder).toEqual(['/api/history', '/api/ranking']);
+  });
+
+  test('should fail ranking independently while history remains available', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('pirate_mock_scenario', 'error_ranking_only'));
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Ranking Hall of Fame' }).click();
+    await expect(page.getByRole('alert')).toContainText('Failed to load rankings');
+
+    await page.getByRole('button', { name: 'Back' }).click();
+    await page.getByRole('button', { name: 'Match History' }).click();
+    await expect(page.getByText(/No completed battles/)).toBeVisible();
+    await expect(page.getByRole('alert')).toHaveCount(0);
+  });
+
+  test('should fail history independently while ranking remains available', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('pirate_mock_scenario', 'error_history_only'));
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Match History' }).click();
+    await expect(page.getByRole('alert')).toContainText('Failed to load match history');
+
+    await page.getByRole('button', { name: 'Back' }).click();
+    await page.getByRole('button', { name: 'Ranking Hall of Fame' }).click();
+    await expect(page.getByRole('row', { name: /Edward "Blackbeard" Teach/ })).toBeVisible();
+    await expect(page.getByRole('alert')).toHaveCount(0);
+  });
+
+  test('should return real HTTP 400 and 500 responses from the selected scenarios', async ({ page }) => {
+    await page.goto('/');
+    const statuses: number[] = [];
+    for (const scenario of ['error_400', 'error_500']) {
+      await page.evaluate(value => localStorage.setItem('pirate_mock_scenario', value), scenario);
+      await page.reload();
+      const responsePromise = page.waitForResponse(response => new URL(response.url()).pathname === '/api/ranking');
+      await page.getByRole('button', { name: 'Ranking Hall of Fame' }).click();
+      statuses.push((await responsePromise).status());
+      await page.getByRole('button', { name: 'Back' }).click();
+    }
+
+    expect(statuses).toEqual([400, 500]);
+  });
+
   test('should show ranking fixtures and record a match successfully', async ({ page }) => {
     let rankingRequests = 0;
     page.on('request', (request) => {

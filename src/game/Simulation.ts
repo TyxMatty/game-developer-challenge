@@ -57,6 +57,7 @@ export class Simulation {
 
   public enemies: Enemy[] = [];
   private nextEnemyId = 1;
+  private spawnedEnemyCount = 0;
   private spawnTimer: number;
   private lastPublishedTime = Number.NaN;
   private lastPublishedHealth = Number.NaN;
@@ -125,6 +126,11 @@ export class Simulation {
     this.input.shootRight = false;
   }
 
+  public setInput(key: keyof Simulation['input'], value: boolean) {
+    if (!this.isRunning || this.isPaused) return;
+    this.input[key] = value;
+  }
+
   private onKeyDown = (e: KeyboardEvent) => {
     // Only capture keys when active gameplay context is running and not paused
     if (!this.isRunning || this.isPaused) return;
@@ -190,12 +196,29 @@ export class Simulation {
 
     // Island generator
     if (this.islands.length === 0) {
-      while (this.islands.length < 3) {
-        const ix = 100 + Math.random() * (window.innerWidth - 200);
-        const iy = 100 + Math.random() * (window.innerHeight - 200);
-        if (Math.hypot(ix - this.player.x, iy - this.player.y) > 200) {
-          this.islands.push({ id: this.nextIslandId++, x: ix, y: iy, radius: 70 });
-        }
+      const marginX = Math.min(100, window.innerWidth / 4);
+      const marginY = Math.min(100, window.innerHeight / 4);
+      const candidates = [
+        { x: marginX, y: marginY },
+        { x: window.innerWidth - marginX, y: marginY },
+        { x: marginX, y: window.innerHeight - marginY },
+        { x: window.innerWidth - marginX, y: window.innerHeight - marginY },
+      ].sort((a, b) => (
+        Math.hypot(b.x - this.player.x, b.y - this.player.y)
+        - Math.hypot(a.x - this.player.x, a.y - this.player.y)
+      ));
+      const minimumIslandDistance = Math.min(
+        200,
+        Math.hypot(window.innerWidth / 2 - marginX, window.innerHeight / 2 - marginY) * 0.75,
+      );
+
+      let generatedIslandCount = 0;
+      for (const candidate of candidates) {
+        if (Math.hypot(candidate.x - this.player.x, candidate.y - this.player.y) <= minimumIslandDistance) continue;
+        if (this.islands.some(island => Math.hypot(candidate.x - island.x, candidate.y - island.y) < 180)) continue;
+        this.islands.push({ id: this.nextIslandId++, ...candidate, radius: 70 });
+        generatedIslandCount++;
+        if (generatedIslandCount === 3) break;
       }
     }
 
@@ -253,41 +276,56 @@ export class Simulation {
   }
 
   private spawnEnemy() {
-    let ex = 0;
-    let ey = 0;
-    let validSpawn = false;
+    const minX = 30;
+    const maxX = window.innerWidth - 30;
+    const minY = 30;
+    const maxY = window.innerHeight - 30;
+    if (maxX <= minX || maxY <= minY) return;
 
-    while (!validSpawn) {
-      const angle = Math.random() * Math.PI * 2;
-      const distance = 500 + Math.random() * 300;
-      ex = this.player.x + Math.cos(angle) * distance;
-      ey = this.player.y + Math.sin(angle) * distance;
+    const farthestCornerDistance = Math.max(
+      Math.hypot(this.player.x - minX, this.player.y - minY),
+      Math.hypot(this.player.x - maxX, this.player.y - minY),
+      Math.hypot(this.player.x - minX, this.player.y - maxY),
+      Math.hypot(this.player.x - maxX, this.player.y - maxY),
+    );
+    const minimumDistance = Math.min(500, farthestCornerDistance * 0.75);
+    let spawnPoint: { x: number; y: number } | null = null;
 
-      ex = Math.max(30, Math.min(window.innerWidth - 30, ex));
-      ey = Math.max(30, Math.min(window.innerHeight - 30, ey));
-
-      validSpawn = true;
-      for (const island of this.islands) {
-        if (Math.hypot(ex - island.x, ey - island.y) < island.radius + 30) {
-          validSpawn = false;
-        }
-      }
+    for (let attempt = 0; attempt < 80; attempt++) {
+      const candidate = {
+        x: minX + Math.random() * (maxX - minX),
+        y: minY + Math.random() * (maxY - minY),
+      };
+      if (Math.hypot(candidate.x - this.player.x, candidate.y - this.player.y) < minimumDistance) continue;
+      if (this.islands.some(island => Math.hypot(candidate.x - island.x, candidate.y - island.y) < island.radius + 30)) continue;
+      spawnPoint = candidate;
+      break;
     }
+    if (!spawnPoint) return;
 
-    const chaserRatio = this.config.spawnDistribution?.chaserRatio ?? 0.5;
-    const type: 'chaser' | 'shooter' = Math.random() < chaserRatio ? 'chaser' : 'shooter';
+    const chaserRatio = Math.max(0, this.config.spawnDistribution?.chaserRatio ?? 0.5);
+    const shooterRatio = Math.max(0, this.config.spawnDistribution?.shooterRatio ?? 0.5);
+    const totalRatio = chaserRatio + shooterRatio;
+    const chaserChance = totalRatio > 0 ? chaserRatio / totalRatio : 0.5;
+    const bothTypesConfigured = chaserRatio > 0 && shooterRatio > 0;
+    const guaranteedOpeningType = bothTypesConfigured && this.spawnedEnemyCount < 2
+      ? (this.spawnedEnemyCount === 0 ? 'chaser' : 'shooter')
+      : null;
+    const type: 'chaser' | 'shooter' = guaranteedOpeningType
+      ?? (Math.random() < chaserChance ? 'chaser' : 'shooter');
     const enemyConfig = this.config.enemy[type];
 
     this.enemies.push({
       id: this.nextEnemyId++,
       type,
-      x: ex,
-      y: ey,
+      x: spawnPoint.x,
+      y: spawnPoint.y,
       rotation: 0,
       health: enemyConfig.health,
       speed: enemyConfig.speed,
       cooldown: 0,
     });
+    this.spawnedEnemyCount++;
   }
 
   private resolvePhysics() {
@@ -331,11 +369,14 @@ export class Simulation {
           shipA.y += ((shipA.y - island.y) / dist) * overlap;
         }
       }
+
+      shipA.x = Math.max(30, Math.min(window.innerWidth - 30, shipA.x));
+      shipA.y = Math.max(30, Math.min(window.innerHeight - 30, shipA.y));
     }
   }
 
   private update(deltaMs: number) {
-    const dt = Math.min(deltaMs / 1000, 0.1);
+    const dt = Math.max(0, Math.min(deltaMs / 1000, 0.1));
 
     this.sessionTime -= dt;
     if (this.sessionTime <= 0 || this.player.health <= 0) {
@@ -447,7 +488,7 @@ export class Simulation {
           e.y -= Math.cos(e.rotation) * e.speed * dt;
         }
         e.cooldown -= dt;
-        if (distance < range + 100 && e.cooldown <= 0) {
+        if (distance <= range && e.cooldown <= 0) {
           this.spawnProjectile(e.x, e.y, e.rotation, 'enemy');
           e.cooldown = this.config.enemy.shooter.cooldown;
         }
