@@ -190,6 +190,8 @@
   },
   "active": "9677dff6cb11d8e5",
   "lastOpenFiles": [
+    "e2e/E2E_TESTS.md",
+    "e2e/E2E_TESTS.html",
     "test-results",
     "dist/assets/webworkerAll-DcEht3J9.js",
     "dist/assets/init-J4kCM5Mi.js",
@@ -199,8 +201,6 @@
     "dist/assets/browserAll-OeSpQ1H-.js",
     "dist/assets/WebGPURenderer-DOCfOjhX.js",
     "dist/assets/WebGLRenderer-Ckiu9cpF.js",
-    "dist/assets/Renderer-3MBfWdW2.js",
-    "dist/assets/RenderTargetSystem-V38DHm-P.js",
     "E2E_TESTS.md",
     "PERFORMANCE.md",
     "README.md",
