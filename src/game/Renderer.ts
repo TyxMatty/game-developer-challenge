@@ -9,8 +9,8 @@ export class Renderer {
   public app: PIXI.Application;
   private simulation: Simulation;
   
-  private playerContainer!: PIXI.Container; 
-  private playerSprite!: PIXI.Sprite;
+  private playerContainer!: PIXI.Container; // Containter for VFX and Health bars.
+  private playerSprite!: PIXI.Sprite; // The main player ship sprite.
   
   private projectileSprites: Map<number, PIXI.Graphics> = new Map();
   private enemyContainers: Map<number, PIXI.Container> = new Map(); 

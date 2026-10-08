@@ -1,4 +1,4 @@
-// Game configuration interface and default values for the game.
+// Game configuration interface and default values for the game, all of which can be customized(as specified by the challenge)
 export interface GameConfig {
   sessionTime: number; // in seconds
   spawnInterval: number; // in seconds
@@ -55,7 +55,7 @@ export const CONFIG_LIMITS = {
   }
 } as const;
 
-export const DEFAULT_CONFIG: GameConfig = {
+export const DEFAULT_CONFIG: GameConfig = { // Default game configuration values, normally you cant change these directly, only with Dev Tools
   sessionTime: 60,
   spawnInterval: 3.0,
   spawnDistribution: {

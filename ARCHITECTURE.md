@@ -17,6 +17,31 @@ Playwright installs a fixed gameplay seed in each fresh page context. `Simulatio
 
 The PixiJS ticker reads simulation state and updates display objects. React receives a compact HUD snapshot only when the displayed time, health, or score changes, rather than receiving every position update. The player and enemy health bars, projectiles, and explosions are PixiJS objects.
 
+```mermaid
+flowchart TD
+    Input[Keyboard/Touch Inputs]
+    GC[GameCanvas.tsx]
+    SIM[Simulation.ts]
+    PIXI[Renderer.ts]
+    Time[requestAnimationFrame]
+    HUD[HUD Snapshot State]
+    Screen[Player Screen]
+
+    Input -- Modifies Key Map --> SIM
+    GC -- Mounts (Lifecycle) --> SIM
+    GC -- Dynamic Import --> PIXI
+    
+    Time -- 60 FPS DeltaTime --> SIM
+    SIM -- Computes Physics & Collisions --> SIM
+    
+    Time -- Ticker update --> PIXI
+    PIXI -- Reads Coordinates --> PIXI
+    PIXI -- Renders Images --> Screen
+    
+    SIM -- onStateChange Callback\n(Only on value change) --> HUD
+    HUD -- Re-renders React --> Screen
+```
+
 ## Gameplay Rules
 
 Player and enemy movement is clamped to the viewport and resolved against island circles. Projectiles advance by their configured speed and direction and are removed on expiration, arena exit, island impact, or a single successful hit. Front cannons create one projectile; each broadside creates three and uses its own cooldown. Defeating an enemy with a player projectile awards one point. Chaser collision damages the player and removes the Chaser without awarding a point.
@@ -45,6 +70,27 @@ MSW's service worker retains its root scope so its client can intercept API requ
 
 Available network scenarios include reproducible variable latency, history returning before delayed ranking, global HTTP 400/500 errors, ranking-only and history-only failures, network errors, empty lists, and delayed match registration that can recover idempotently after a client timeout.
 
+```mermaid
+flowchart TD
+    ReactComp[React Components]
+    TSQ[TanStack Query]
+    MSW[MSW - mockServiceWorker]
+    Store[(LocalStorage\nPending Matches)]
+    Condition{Network Response}
+
+    ReactComp -- useMutation hook\n(Submit Score) --> TSQ
+    TSQ -- Axios POST /api/match --> MSW
+    
+    MSW -- Simulates NetworkSimulator --> Condition
+    
+    Condition -- "HTTP 200 (Success)" --> TSQ_Success[Invalidate Cache / Refetch]
+    TSQ_Success --> ReactComp
+    
+    Condition -- "HTTP 500 / Timeout" --> TSQ_Fail[Idempotency Deduplication]
+    TSQ_Fail --> Store
+    Store -- Retry Later (Flush) --> TSQ
+```
+
 ## Accessible Dialogs and Mobile Input
 
 `src/hooks/useDialogFocus.ts` focuses the first relevant control, wraps Tab/Shift+Tab, redirects focus that escapes a modal, supports contextual Escape actions, and restores the previous focus target on close. Touch controls use pointer capture and release their input on pointer-up, cancellation, or capture loss. The MSW trigger moves above the touch controls on narrow screens.
@@ -55,5 +101,28 @@ The Pixi renderer is a separate dynamic chunk and is imported when gameplay star
 
 ## Known Limitations
 
-- The current Playwright suite coveras every requirement in the challenge; see the Test section in `README.md`. Playwright writes its HTML report to `playwright-report/` and retains traces, videos, and screenshots for failed tests in `test-results/`; a passing run has no failure traces to retain.
-- Profiling is from a single machine (see `PERFORMANCE.md`); verify the public deployment with the deployed-site E2E command in `README.md` after each release.
+- Profiling is from a single machine (see `PERFORMANCE.md`); verify the public deployment with the deployed-site E2E command in `README.md` after each release(as I've used only my computer)
+
+## Development Workflow
+
+The project was executed following an iterative, layered pipeline to ensure the engine and the UI were fully decoupled from day one.
+
+```mermaid
+flowchart LR
+    Task1[Phase 1\nCore Simulation]
+    Task2[Phase 2\nPixiJS Rendering]
+    Task3[Phase 3\nGameplay & Physics]
+    Task4[Phase 4\nReact UI]
+    Task5[Phase 5\nVisual Polish]
+    Task6[Phase 6\nMSW & API Mocking]
+    Task7[Phase 7\nE2E Testing]
+    Prod((PRODUCTION))
+
+    Task1 --> Task2
+    Task2 --> Task3
+    Task3 --> Task4
+    Task4 --> Task5
+    Task5 --> Task6
+    Task6 --> Task7
+    Task7 --> Prod
+```

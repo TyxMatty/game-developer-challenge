@@ -34,6 +34,10 @@ The production build reports an entry chunk of ~757 kB (265 kB gzip) and a separ
 - `Renderer.render()` creates sets while synchronizing projectile and enemy IDs and updates health-bar masks each ticker frame. These paths should be included in a measured performance trace before optimization claims are made.
 - `GameCanvas` dynamically imports PixiJS for gameplay. `Renderer.destroy()` keeps global caches intact to avoid invalidating shared resources; assets are not explicitly unloaded by URL. Memory conclusions require snapshots and should distinguish JavaScript heap from GPU resources.
 
+## Extra Considerations
+
+- **O notation:** after further code reviewing and notations, the method `resolvePhysics()` in `Simulation.ts` runs in O(n²), there is a fix for it to run in O(n log n), which is using Spatial Pariotining(like, QuadTrees), which, but, as I've limited it to 50 enemy spawns, I didn't find the need to do it. If we did need to scale to 10.000 enemies, that would be the fix.
+
 ## Result Log
 
 - 2026-10-08, local working tree, environment above, default configuration with a 180 s session: 179.7 FPS average, p95 frame interval 5.7 ms, peak 16 enemies and 17 projectiles, stable 2.27 MB heap across 5 start/exit cycles.

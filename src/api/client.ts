@@ -7,7 +7,7 @@ import {
   type HistoryParams
 } from '../types/match';
 
-export const apiClient = axios.create({
+export const apiClient = axios.create({ // axios instance for API requests
   baseURL: '/api',
   timeout: 5000,
   headers: {
@@ -15,7 +15,7 @@ export const apiClient = axios.create({
   }
 });
 
-export const matchApi = {
+export const matchApi = { // API methods for match-related operations, like rankings and match history
   getRanking: async (params: RankingParams = {}): Promise<PaginatedResponse<RankingEntry>> => {
     const response = await apiClient.get<PaginatedResponse<RankingEntry>>('/ranking', { params });
     return response.data;
@@ -35,7 +35,7 @@ export const matchApi = {
 // Pending matches queue for offline / failed submission resilience
 const PENDING_MATCHES_KEY = 'pirate_pending_matches_queue';
 
-export function getPendingMatches(): MatchRecord[] {
+export function getPendingMatches(): MatchRecord[] { // this function retrieves the list of pending matches from local storage
   try {
     const data = localStorage.getItem(PENDING_MATCHES_KEY);
     if (data) {
@@ -43,12 +43,12 @@ export function getPendingMatches(): MatchRecord[] {
       if (Array.isArray(parsed)) return parsed;
     }
   } catch (e) {
-    console.warn('Failed to read pending matches:', e);
+    console.warn('Failed to read pending matches:', e); // catch to avoid breaking if local storage is inaccessible
   }
   return [];
 }
 
-export function queuePendingMatch(match: MatchRecord) {
+export function queuePendingMatch(match: MatchRecord) { // this function adds a match to the pending matches queue in local storage
   const pending = getPendingMatches();
   if (!pending.some(m => m.id === match.id)) {
     pending.push(match);

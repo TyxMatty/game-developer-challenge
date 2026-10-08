@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { matchApi, queuePendingMatch, removePendingMatch, getPendingMatches } from './client';
 import { type RankingParams, type HistoryParams, type MatchRecord } from '../types/match';
-
+// queries for ranking, match history, and match recording with offline resilience
 export function useRanking(params: RankingParams = {}) {
   return useQuery({
     queryKey: ['ranking', params],
@@ -69,8 +69,8 @@ export function useFlushPendingMatches() {
       return results;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ranking'] });
-      queryClient.invalidateQueries({ queryKey: ['history'] });
+      queryClient.invalidateQueries({ queryKey: ['ranking'] }); // Invalidate ranking queries to refetch fresh data
+      queryClient.invalidateQueries({ queryKey: ['history'] }); // Invalidate history queries to refetch fresh data
     }
   });
 }
