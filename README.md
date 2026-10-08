@@ -36,6 +36,7 @@ Install the Playwright browser once with `npx playwright install chromium` (it m
 
 GitHub Actions runs lint, type checks, a production build, and the Playwright suite against the production preview on pushes and pull requests targeting `main`. The workflow runs on Windows to match the platform-specific visual baselines. Each run uploads the HTML report; traces and other test artifacts are uploaded when a run fails.
 
+Even though this is a personal project, I still found it pretty necessary to include CI through GitHub Actions as it's standardized proccedure to me.
 ## Controls
 
 | Action | Keyboard | Touch |
