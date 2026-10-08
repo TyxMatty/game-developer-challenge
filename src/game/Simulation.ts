@@ -231,29 +231,21 @@ export class Simulation {
 
     // Island generator
     if (this.islands.length === 0) {
-      const marginX = Math.min(100, window.innerWidth / 4);
-      const marginY = Math.min(100, window.innerHeight / 4);
-      const candidates = [
-        { x: marginX, y: marginY },
-        { x: window.innerWidth - marginX, y: marginY },
-        { x: marginX, y: window.innerHeight - marginY },
-        { x: window.innerWidth - marginX, y: window.innerHeight - marginY },
-      ].sort((a, b) => (
-        Math.hypot(b.x - this.player.x, b.y - this.player.y)
-        - Math.hypot(a.x - this.player.x, a.y - this.player.y)
-      ));
-      const minimumIslandDistance = Math.min(
-        200,
-        Math.hypot(window.innerWidth / 2 - marginX, window.innerHeight / 2 - marginY) * 0.75,
-      );
+      // Two central islands flank the player's spawn, leaving a clear lane straight ahead,
+      // and are nudged to opposite vertical sides so the layout is diagonal.
+      const radius = 70;
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      const offsetX = Math.max(window.innerWidth * 0.25, radius + 50);
+      const offsetY = window.innerHeight * 0.12;
 
-      let generatedIslandCount = 0;
-      for (const candidate of candidates) {
-        if (Math.hypot(candidate.x - this.player.x, candidate.y - this.player.y) <= minimumIslandDistance) continue;
-        if (this.islands.some(island => Math.hypot(candidate.x - island.x, candidate.y - island.y) < 180)) continue;
-        this.islands.push({ id: this.nextIslandId++, ...candidate, radius: 70 });
-        generatedIslandCount++;
-        if (generatedIslandCount === 3) break;
+      for (const side of [-1, 1]) {
+        this.islands.push({
+          id: this.nextIslandId++,
+          x: centerX + side * offsetX,
+          y: centerY + side * offsetY,
+          radius,
+        });
       }
     }
 
