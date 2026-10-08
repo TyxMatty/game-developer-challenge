@@ -75,7 +75,16 @@ export class Renderer {
       return tex;
     };
 
-    const waterTexture = await stepLoad(assetUrls[0]);
+    const [
+      waterTexture,
+      shipTexture,
+      chaserTexture,
+      shooterTexture,
+      enemyHealthFrameTexture,
+      enemyHealthFillTexture,
+      playerHealthFillTexture,
+      ...explosionTextures
+    ] = await Promise.all(assetUrls.map(stepLoad));
     const waterBg = new PIXI.TilingSprite({
       texture: waterTexture,
       width: this.app.screen.width,
@@ -89,16 +98,12 @@ export class Renderer {
       waterBg.height = this.app.screen.height;
     });
 
-    const shipTexture = await stepLoad(assetUrls[1]); 
-    this.texChaser = await stepLoad(assetUrls[2]);
-    this.texShooter = await stepLoad(assetUrls[3]);
-    this.texEnemyHpFrame = await stepLoad(assetUrls[4]);
-    this.texEnemyHpFill = await stepLoad(assetUrls[5]);
-    this.texPlayerHpFill = await stepLoad(assetUrls[6]);
-    
-    this.texExplosions.push(await stepLoad(assetUrls[7]));
-    this.texExplosions.push(await stepLoad(assetUrls[8]));
-    this.texExplosions.push(await stepLoad(assetUrls[9]));
+    this.texChaser = chaserTexture;
+    this.texShooter = shooterTexture;
+    this.texEnemyHpFrame = enemyHealthFrameTexture;
+    this.texEnemyHpFill = enemyHealthFillTexture;
+    this.texPlayerHpFill = playerHealthFillTexture;
+    this.texExplosions.push(...explosionTextures);
 
     this.playerContainer = new PIXI.Container();
     this.playerSprite = new PIXI.Sprite(shipTexture);
