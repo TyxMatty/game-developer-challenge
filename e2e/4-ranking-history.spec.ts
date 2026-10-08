@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('Ranking and History (TanStack + MSW)', () => {
   test('should bypass document navigation while keeping API mocks active', async ({ page }) => {

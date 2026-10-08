@@ -1,6 +1,83 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('Gameplay Mechanics', () => {
+  test('should reproduce seeded enemy spawns with the manually controlled simulation clock', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      window.__GAME_TEST_CONFIG__ = { seed: 42, manualClock: true };
+    });
+
+    const runSeededMatch = async () => {
+      await page.getByRole('button', { name: 'Start Battle' }).click();
+      await page.waitForFunction(() => window.__SIMULATION__?.isRunning);
+      await page.evaluate(() => {
+        const simulation = window.__SIMULATION__;
+        if (!simulation) throw new Error('Test simulation was not initialized.');
+        simulation.config.spawnInterval = 1;
+        simulation.advanceTestTime(5000);
+      });
+
+      return page.evaluate(() => {
+        const simulation = window.__SIMULATION__;
+        if (!simulation) throw new Error('Test simulation was not initialized.');
+        return simulation.enemies.map(({ type, x, y }) => ({ type, x, y }));
+      });
+    };
+
+    const firstSpawns = await runSeededMatch();
+    expect(firstSpawns.length).toBeGreaterThanOrEqual(2);
+
+    await page.reload();
+    await page.evaluate(() => {
+      window.__GAME_TEST_CONFIG__ = { seed: 42, manualClock: true };
+    });
+    const repeatedSpawns = await runSeededMatch();
+
+    expect(repeatedSpawns).toEqual(firstSpawns);
+  });
+
+  test('should advance gameplay only when the controlled simulation clock advances', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      window.__GAME_TEST_CONFIG__ = { seed: 7, manualClock: true };
+    });
+    await page.getByRole('button', { name: 'Start Battle' }).click();
+    await page.waitForFunction(() => window.__SIMULATION__?.isRunning);
+
+    const initialState = await page.evaluate(() => {
+      const simulation = window.__SIMULATION__;
+      if (!simulation) throw new Error('Test simulation was not initialized.');
+      return { x: simulation.player.x, y: simulation.player.y, time: simulation.sessionTime };
+    });
+    await page.keyboard.down('KeyW');
+    await page.keyboard.down('Space');
+    await page.keyboard.up('Space');
+    await page.evaluate(() => {
+      const simulation = window.__SIMULATION__;
+      if (!simulation) throw new Error('Test simulation was not initialized.');
+      simulation.advanceTestTime(500);
+    });
+    await page.keyboard.up('KeyW');
+
+    const advancedState = await page.evaluate(() => {
+      const simulation = window.__SIMULATION__;
+      if (!simulation) throw new Error('Test simulation was not initialized.');
+      return {
+        x: simulation.player.x,
+        y: simulation.player.y,
+        time: simulation.sessionTime,
+        fired: simulation.projectiles.some((projectile) => projectile.owner === 'player'),
+      };
+    });
+    expect(advancedState.y).toBeLessThan(initialState.y);
+    expect(advancedState.x).toBe(initialState.x);
+    expect(advancedState.time).toBeCloseTo(initialState.time - 0.5, 5);
+    expect(advancedState.fired).toBe(true);
+
+    await page.waitForTimeout(200);
+    expect(await page.evaluate(() => window.__SIMULATION__?.sessionTime)).toBe(advancedState.time);
+  });
+
   test('should award one point for each enemy destroyed', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Start Battle' }).click();
@@ -145,6 +222,9 @@ test.describe('Gameplay Mechanics', () => {
 
   test('should respect the front cannon cooldown', async ({ page }) => {
     await page.goto('/');
+    await page.evaluate(() => {
+      window.__GAME_TEST_CONFIG__ = { ...window.__GAME_TEST_CONFIG__, manualClock: true };
+    });
     await page.getByRole('button', { name: 'Start Battle' }).click();
     await page.waitForFunction(() => (window as any).__SIMULATION__?.isRunning);
     await page.evaluate(() => {
@@ -155,9 +235,18 @@ test.describe('Gameplay Mechanics', () => {
     });
 
     await page.keyboard.down('Space');
-    await page.waitForTimeout(250);
+    await page.evaluate(() => {
+      const simulation = window.__SIMULATION__;
+      if (!simulation) throw new Error('Test simulation was not initialized.');
+      simulation.advanceTestTime(250);
+    });
     expect(await page.evaluate(() => (window as any).__SIMULATION__.projectiles.filter((projectile: any) => projectile.owner === 'player').length)).toBe(1);
-    await page.waitForFunction(() => (window as any).__SIMULATION__.projectiles.filter((projectile: any) => projectile.owner === 'player').length >= 2);
+    await page.evaluate(() => {
+      const simulation = window.__SIMULATION__;
+      if (!simulation) throw new Error('Test simulation was not initialized.');
+      simulation.advanceTestTime(350);
+    });
+    expect(await page.evaluate(() => (window as any).__SIMULATION__.projectiles.filter((projectile: any) => projectile.owner === 'player').length)).toBeGreaterThanOrEqual(2);
     await page.keyboard.up('Space');
   });
 
@@ -231,6 +320,9 @@ test.describe('Gameplay Mechanics', () => {
 
   test('should allow playing the game, moving, shooting, and finishing', async ({ page }) => {
     await page.goto('/');
+    await page.evaluate(() => {
+      window.__GAME_TEST_CONFIG__ = { ...window.__GAME_TEST_CONFIG__, manualClock: true };
+    });
 
     await page.getByRole('button', { name: 'Start Battle' }).click();
     await expect(page.getByRole('banner', { name: 'Combat Heads-Up Display' })).toBeVisible();
@@ -244,7 +336,11 @@ test.describe('Gameplay Mechanics', () => {
 
     // Press W to move forward
     await page.keyboard.down('KeyW');
-    await page.waitForTimeout(500); // Wait for movement
+    await page.evaluate(() => {
+      const simulation = window.__SIMULATION__;
+      if (!simulation) throw new Error('Test simulation was not initialized.');
+      simulation.advanceTestTime(500);
+    });
     await page.keyboard.up('KeyW');
 
     // Check position changed
@@ -256,18 +352,18 @@ test.describe('Gameplay Mechanics', () => {
 
     // Shoot front
     await page.keyboard.down('Space');
-    await page.waitForFunction(() => (window as any).__SIMULATION__.projectiles.some((projectile: any) => projectile.owner === 'player'));
     await page.keyboard.up('Space');
 
     const projectileCount = await page.evaluate(() => (window as any).__SIMULATION__.projectiles.filter((projectile: any) => projectile.owner === 'player').length);
     await page.keyboard.down('KeyQ');
-    await page.waitForFunction((initialCount) => (window as any).__SIMULATION__.projectiles.filter((projectile: any) => projectile.owner === 'player').length >= initialCount + 3, projectileCount);
     await page.keyboard.up('KeyQ');
+    expect(await page.evaluate(() => (window as any).__SIMULATION__.projectiles.filter((projectile: any) => projectile.owner === 'player').length)).toBe(projectileCount + 3);
 
     // Fast-forward session time to near end
     await page.evaluate(() => {
       const sim = (window as any).__SIMULATION__;
       sim.sessionTime = 0.1;
+      sim.advanceTestTime(100);
     });
 
     // Wait for match to end automatically
@@ -362,4 +458,3 @@ test.describe('Gameplay Mechanics', () => {
     expect(movedY).toBeLessThan(initialY);
   });
 });
-

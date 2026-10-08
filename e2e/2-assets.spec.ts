@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('Assets Loading and Retries', () => {
   test.use({ serviceWorkers: 'block' });
@@ -20,4 +20,3 @@ test.describe('Assets Loading and Retries', () => {
     await expect(page.getByRole('banner', { name: 'Combat Heads-Up Display' })).toBeVisible();
   });
 });
-

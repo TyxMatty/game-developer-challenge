@@ -55,7 +55,7 @@ export default function GameCanvas({ config, onGameOver, onQuit, onOpenOptions }
     if (!containerRef.current) return;
 
     // Create match simulation with immutable snapshot
-    const simulation = new Simulation(config);
+    const simulation = new Simulation(config, window.__GAME_TEST_CONFIG__);
     simulationRef.current = simulation;
     let mounted = true;
     let renderer: Renderer | null = null;

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('Visual Regression', () => {
   test('main menu baseline', async ({ page }) => {
@@ -10,6 +10,9 @@ test.describe('Visual Regression', () => {
 
   test('stable arena baseline', async ({ page }) => {
     await page.goto('/');
+    await page.evaluate(() => {
+      window.__GAME_TEST_CONFIG__ = { ...window.__GAME_TEST_CONFIG__, manualClock: true };
+    });
     await page.getByRole('button', { name: 'Start Battle' }).click();
     await page.waitForFunction(() => (window as any).__SIMULATION__?.isRunning);
     await page.evaluate(() => {

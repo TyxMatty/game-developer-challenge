@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('Options Navigation, Validation, and Persistence', () => {
   test('should contain keyboard focus and close with Escape', async ({ page }) => {
@@ -56,4 +56,3 @@ test.describe('Options Navigation, Validation, and Persistence', () => {
     await expect(page.getByText('5.0s', { exact: true })).toBeVisible();
   });
 });
-

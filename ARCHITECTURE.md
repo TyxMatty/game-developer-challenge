@@ -13,6 +13,8 @@ The simulation is decoupled from PixiJS and React, but it is browser-oriented: i
 
 The simulation uses `requestAnimationFrame` and derives a delta in seconds from each frame. A frame delta is capped at 0.1 seconds. Movement, cooldowns, timers, enemy spawning, and projectile motion use that delta. While paused, the loop continues scheduling frames without updating game state; resuming resets the time origin and clears held inputs.
 
+Playwright installs a fixed gameplay seed in each fresh page context. `Simulation` uses a seeded PRNG for enemy spawn positions and type selection only when this test configuration is present; ordinary sessions continue to use `Math.random()`. Tests may enable `manualClock` and call `advanceTestTime(ms)`, which advances the real simulation update in steps capped at 100 ms while the render loop stays active. This makes test time deterministic without bypassing inputs, collision logic, or rendering.
+
 The PixiJS ticker reads simulation state and updates display objects. React receives a compact HUD snapshot only when the displayed time, health, or score changes, rather than receiving every position update. The player and enemy health bars, projectiles, and explosions are PixiJS objects.
 
 ## Gameplay Rules
@@ -51,5 +53,5 @@ The Pixi renderer is a separate dynamic chunk and is imported when gameplay star
 
 ## Known Limitations
 
-- The current Playwright suite does not cover every requirement in the challenge; see the Test section in `README.md`.
+- The current Playwright suite does not cover every requirement in the challenge; see the Test section in `README.md`. Playwright writes its HTML report to `playwright-report/` and retains traces, videos, and screenshots for failed tests in `test-results/`; a passing run has no failure traces to retain.
 - Profiling is from a single machine (see `PERFORMANCE.md`); verify the public deployment with the deployed-site E2E command in `README.md` after each release.

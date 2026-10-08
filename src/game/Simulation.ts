@@ -1,3 +1,6 @@
+import { type GameConfig, loadLocalConfig } from '../config/GameConfig';
+import { type TerminationReason } from '../types/match';
+
 export interface Projectile {
   id: number;
   x: number;
@@ -26,13 +29,24 @@ export interface Island {
   radius: number;
 }
 
-import { type GameConfig, loadLocalConfig } from '../config/GameConfig';
-import { type TerminationReason } from '../types/match';
+function createSeededRandom(seed: number): () => number {
+  let state = seed >>> 0;
+
+  return () => {
+    state += 0x6d2b79f5;
+    let value = state;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 export class Simulation {
   public config: GameConfig;
   private lastTime: number = 0;
   private animationFrameId: number = 0;
+  private readonly manualTestClock: boolean;
+  private readonly random: () => number;
   public isRunning: boolean = false;
   public isPaused: boolean = false;
 
@@ -78,9 +92,13 @@ export class Simulation {
 
   public cooldowns = { front: 0, left: 0, right: 0 };
 
-  constructor(initialConfig?: GameConfig) {
+  constructor(initialConfig?: GameConfig, testConfig = window.__GAME_TEST_CONFIG__) {
     // Snapshot of active configuration for this match
     this.config = initialConfig ? JSON.parse(JSON.stringify(initialConfig)) : loadLocalConfig();
+    this.manualTestClock = testConfig?.manualClock === true;
+    this.random = typeof testConfig?.seed === 'number'
+      ? createSeededRandom(testConfig.seed)
+      : Math.random;
     this.sessionTime = this.config.sessionTime;
     this.spawnTimer = this.config.spawnInterval;
 
@@ -129,6 +147,23 @@ export class Simulation {
   public setInput(key: keyof Simulation['input'], value: boolean) {
     if (!this.isRunning || this.isPaused) return;
     this.input[key] = value;
+  }
+
+  public advanceTestTime(deltaMs: number) {
+    if (!this.manualTestClock) {
+      throw new Error('Manual simulation time is only available in test mode.');
+    }
+    if (!Number.isFinite(deltaMs) || deltaMs < 0) {
+      throw new RangeError('Test time must be a finite, non-negative number of milliseconds.');
+    }
+    if (!this.isRunning || this.isPaused) return;
+
+    let remainingMs = deltaMs;
+    while (remainingMs > 0 && this.isRunning && !this.isPaused) {
+      const stepMs = Math.min(remainingMs, 100);
+      this.update(stepMs);
+      remainingMs -= stepMs;
+    }
   }
 
   private onKeyDown = (e: KeyboardEvent) => {
@@ -246,6 +281,12 @@ export class Simulation {
   private loop = (time: number) => {
     if (!this.isRunning) return;
 
+    if (this.manualTestClock) {
+      this.lastTime = time;
+      this.animationFrameId = requestAnimationFrame(this.loop);
+      return;
+    }
+
     if (this.isPaused) {
       this.lastTime = time;
       this.animationFrameId = requestAnimationFrame(this.loop);
@@ -293,8 +334,8 @@ export class Simulation {
 
     for (let attempt = 0; attempt < 80; attempt++) {
       const candidate = {
-        x: minX + Math.random() * (maxX - minX),
-        y: minY + Math.random() * (maxY - minY),
+        x: minX + this.random() * (maxX - minX),
+        y: minY + this.random() * (maxY - minY),
       };
       if (Math.hypot(candidate.x - this.player.x, candidate.y - this.player.y) < minimumDistance) continue;
       if (this.islands.some(island => Math.hypot(candidate.x - island.x, candidate.y - island.y) < island.radius + 30)) continue;
@@ -312,7 +353,7 @@ export class Simulation {
       ? (this.spawnedEnemyCount === 0 ? 'chaser' : 'shooter')
       : null;
     const type: 'chaser' | 'shooter' = guaranteedOpeningType
-      ?? (Math.random() < chaserChance ? 'chaser' : 'shooter');
+      ?? (this.random() < chaserChance ? 'chaser' : 'shooter');
     const enemyConfig = this.config.enemy[type];
 
     this.enemies.push({

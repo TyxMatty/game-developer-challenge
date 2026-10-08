@@ -1,6 +1,8 @@
 # E2E Tests Coverage
 
-This project includes Playwright E2E tests for the core scenarios requested in the challenge. The suite runs in desktop Chromium and Pixel 5 emulation; the touch-only test is intentionally skipped on desktop.
+This project includes Playwright E2E tests for the core scenarios requested in the challenge. The suite runs in desktop Chromium and Pixel 5 emulation; the touch-only test is intentionally skipped on desktop(for obvious reasons).
+
+Every spec uses a fresh Playwright page/context and a fixed simulation seed. Gameplay includes checks that repeat the same spawn sequence under a manual simulation clock and that movement, firing, and match time advance through real game logic only when the test clock advances.
 
 ### MSW navigation bypass and API mocking
 - **Spec:** `4-ranking-history.spec.ts`
@@ -54,4 +56,14 @@ This project includes Playwright E2E tests for the core scenarios requested in t
 - **Spec:** `4-ranking-history.spec.ts`
 - **Description:** Tests recovery from a timed-out match submission without duplicating the persisted match. The `NetworkSimulator` also provides `Timeout on Match POST` and `Slow & Variable Latency` scenarios for manual verification.
 
-The full suite currently contains 56 project/test combinations: 55 pass, and the desktop touch case is intentionally skipped. Run `npm run test:e2e` for the development server or `npm run test:e2e:preview` for the production build. Set `E2E_BASE_URL` to run against a deployed site.
+The latest full-suite totals are recorded in the committed HTML report at `playwright-report/index.html`. Run `npm run test:e2e` for the development server or `npm run test:e2e:preview` for the production build. Set `E2E_BASE_URL` to run against a deployed site.
+
+The HTML report is saved and versioned at `playwright-report/index.html`. On a test failure, Playwright retains `trace.zip`, screenshots, and video in that test's `test-results/` directory; open a trace with `npx playwright show-trace test-results/<test-folder>/trace.zip`. Passing runs produce no failure trace files.
+
+Traces captured while making the arena screenshot, cooldown, and mobile gameplay checks deterministic are preserved under `test-artifacts/failure-traces/`; they document the pre-fix failures:
+
+- `stable-arena-baseline/trace.zip` — HUD timer differed by one second.
+- `mobile-front-cannon-cooldown/trace.zip` — wall-clock test exceeded the cooldown expectation.
+- `mobile-gameplay-finished-before-input/trace.zip` — enemies ended the match before the delayed input assertion.
+
+The final report represents the corrected test run.

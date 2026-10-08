@@ -13,10 +13,13 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1, // Avoid conflicts with MSW / local storage
-  reporter: 'html',
+  outputDir: './test-results',
+  reporter: [['html', { outputFolder: './playwright-report', open: 'never' }]],
   use: {
     baseURL,
-    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    trace: 'retain-on-failure',
+    video: 'retain-on-failure',
   },
   projects: [
     {
