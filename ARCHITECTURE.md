@@ -48,6 +48,6 @@ The Pixi renderer is a separate dynamic chunk and is imported when gameplay star
 
 ## Known Limitations
 
-- The current Playwright suite does not cover every requirement in the challenge; see the remaining gaps in `README.md`.
-- Production profiling and a public deployment have not been verified; see `PERFORMANCE.md` and the Deployment section in `README.md`.
+- The current Playwright suite does not cover every requirement in the challenge; see the Test section in `README.md`.
+- Profiling is from a single machine (see `PERFORMANCE.md`); the public deployment is not yet verified (see the Deployment section in `README.md`).
 

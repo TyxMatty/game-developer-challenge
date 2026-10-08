@@ -2,20 +2,24 @@
 
 ## Evidence Status
 
-No reproducible production-build profiling evidence is currently available in this repository. The previously listed FPS, frame-time, scripting-time, memory, and entity-count figures did not include captured traces or a verifiable run record, so they are intentionally not reported as measured results here.
+Measured with `npm run build` followed by `npm run profile` (`scripts/profile.mjs`), which serves the **production preview build**, plays a full match with scripted input (hold forward, alternate turns, fire front/left/right cannons), samples every `requestAnimationFrame` interval, and then runs repeated start/exit cycles measuring the JS heap after forced GC. Raw output: [`perf-results/latest.json`](perf-results/latest.json).
 
-| Required measurement | Current status |
+| Measurement | Result |
 | --- | --- |
-| Reference hardware, OS, browser, resolution, and device-pixel ratio | Not recorded for a profiling run |
-| Average FPS and p95 frame interval during a 3-minute match | Not measured |
-| Peak enemy, projectile, and rendered-object counts | Not captured from a profiling run |
-| Heap behavior over five start/play/exit cycles | Not measured with retained snapshots |
-| Chrome Performance and Memory evidence | Not attached |
+| Environment | Windows 11 (10.0.26200), AMD Ryzen 5 5600G (12 threads), 15.8 GB RAM, Chromium 156.0.8078.4 headed, 1280x720, DPR 1 |
+| Match length | 180 s (32,413 frames sampled) |
+| Average FPS | 179.7 (display refresh-limited; mean frame interval 5.57 ms) |
+| Frame interval p50 / p95 / p99 / max | 5.6 / 5.7 / 5.7 / 72.2 ms |
+| Peak enemies / projectiles | 16 / 17 |
+| JS heap after 5 start/exit cycles (MB) | 3.16 (menu) -> 2.27, 2.27, 2.27, 2.26 (no growth) |
+| Console errors during run | none |
 
-The production build on 2026-10-07 reported an entry chunk of 757.60 kB (265.02 kB gzip) and a separate renderer chunk of 262.70 kB (76.44 kB gzip). This confirms the Pixi renderer is split from the menu's initial entry bundle, but the entry still exceeds Vite's 500 kB warning threshold. Bundle size is not a substitute for runtime profiling.
+Caveats: the player was given effectively unlimited health so the 180 s match could be completed with scripted input; the single 72 ms outlier is the first-frame/initial load spike. Headless Chromium on the same machine is software-rendered and capped at ~31 FPS (p50 33.3 ms), so headed mode is the reference. GPU memory is not measured by the JS heap figure. Results are from one machine and are not a guarantee for low-end or mobile devices.
 
+The production build reports an entry chunk of ~757 kB (265 kB gzip) and a separate renderer chunk, so Pixi is split from the menu's initial bundle, although the entry still exceeds Vite's 500 kB warning threshold.
 ## Reproducible Measurement Procedure
 
+0. Quick path: `npm run build` then `npm run profile` (set `PROFILE_HEADED=1` for headed Chromium).
 1. Run `npm ci`, `npm run build`, and `npm run preview`; profile the preview build, not the Vite development server.
 2. Record OS, CPU, GPU, available memory, browser version, viewport, and device-pixel ratio.
 3. Set session duration to 180 seconds and spawn interval to 2 seconds. Capture a full three-minute match using Chrome DevTools Performance. Record average FPS and the p95 frame interval, and inspect the `Simulation.update()` call cost.
@@ -32,5 +36,4 @@ The production build on 2026-10-07 reported an entry chunk of 757.60 kB (265.02 
 
 ## Result Log
 
-Add one entry per verified run with the commit or source revision, date, environment, configuration, FPS average, p95 frame interval, peak entity counts, and five-cycle memory observations. Until then, the performance criterion remains unverified.
-
+- 2026-10-08, local working tree, environment above, default configuration with a 180 s session: 179.7 FPS average, p95 frame interval 5.7 ms, peak 16 enemies and 17 projectiles, stable 2.27 MB heap across 5 start/exit cycles.

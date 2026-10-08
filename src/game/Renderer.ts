@@ -25,6 +25,8 @@ export class Renderer {
   
   private texExplosions: PIXI.Texture[] = [];
   private activeExplosions: Explosion[] = [];
+  private puffs: { g: PIXI.Graphics; age: number; life: number; startAlpha: number; grow: number }[] = [];
+  private trailTimers: Map<number, number> = new Map();
   private destroyed = false;
   private appInitialized = false;
   private appDestroyed = false;
@@ -138,6 +140,27 @@ export class Renderer {
     this.activeExplosions.push({ x, y, age: 0, sprite });
   }
 
+  // Short-lived circle used for muzzle flashes and cannonball smoke trails.
+  private spawnPuff(x: number, y: number, radius: number, color: number, life: number, startAlpha: number, grow: number) {
+    const g = new PIXI.Graphics();
+    g.circle(0, 0, radius);
+    g.fill({ color });
+    g.x = x;
+    g.y = y;
+    g.alpha = startAlpha;
+    this.app.stage.addChild(g);
+    this.puffs.push({ g, age: 0, life, startAlpha, grow });
+  }
+
+  // Ships darken toward a charred red-brown as health drops.
+  private static damageTint(percent: number): number {
+    const t = Math.min(1, Math.max(0, percent));
+    const r = Math.round(255 * (0.55 + 0.45 * t));
+    const g = Math.round(255 * (0.35 + 0.65 * t));
+    const b = Math.round(255 * (0.3 + 0.7 * t));
+    return (r << 16) | (g << 8) | b;
+  }
+
   private createProjectileSprite(): PIXI.Graphics {
     const graphics = new PIXI.Graphics();
     graphics.circle(0, 0, 5); 
@@ -171,7 +194,8 @@ export class Renderer {
     this.playerSprite.rotation = this.simulation.player.rotation + Math.PI;
     
     const maxHp = this.simulation.config?.player.maxHealth ?? 300;
-      const pPercent = Math.max(0, this.simulation.player.health / maxHp);
+    const pPercent = Math.max(0, this.simulation.player.health / maxHp);
+    this.playerSprite.tint = Renderer.damageTint(pPercent);
     const hpContainerP = this.playerContainer.getChildByLabel('hp_container') as PIXI.Container;
     const pHpMask = hpContainerP?.getChildByLabel('hp_mask') as PIXI.Graphics;
     if (pHpMask) {
@@ -189,9 +213,17 @@ export class Renderer {
         sprite = this.createProjectileSprite();
         this.app.stage.addChild(sprite);
         this.projectileSprites.set(p.id, sprite);
+        this.spawnPuff(p.x, p.y, 14, 0xffd27a, 120, 0.9, 1.6);
       }
       sprite.x = p.x;
       sprite.y = p.y;
+      const trailTimer = (this.trailTimers.get(p.id) ?? 0) + ticker.deltaMS;
+      if (trailTimer >= 45) {
+        this.spawnPuff(p.x, p.y, 4, 0xdddddd, 350, 0.5, 1.8);
+        this.trailTimers.set(p.id, 0);
+      } else {
+        this.trailTimers.set(p.id, trailTimer);
+      }
     }
 
     for (const [id, sprite] of this.projectileSprites) {
@@ -199,6 +231,22 @@ export class Renderer {
         this.app.stage.removeChild(sprite);
         sprite.destroy();
         this.projectileSprites.delete(id);
+        this.trailTimers.delete(id);
+      }
+    }
+
+    // 3b. Fade out muzzle flashes and smoke trail puffs
+    for (let i = this.puffs.length - 1; i >= 0; i--) {
+      const puff = this.puffs[i];
+      puff.age += ticker.deltaMS;
+      if (puff.age >= puff.life) {
+        this.app.stage.removeChild(puff.g);
+        puff.g.destroy();
+        this.puffs.splice(i, 1);
+      } else {
+        const t = puff.age / puff.life;
+        puff.g.alpha = puff.startAlpha * (1 - t);
+        puff.g.scale.set(1 + (puff.grow - 1) * t);
       }
     }
 
@@ -248,6 +296,7 @@ export class Renderer {
         ? (this.simulation.config?.enemy.chaser.health ?? 2) 
         : (this.simulation.config?.enemy.shooter.health ?? 3);
       const percent = Math.max(0, e.health / maxHp);
+      if (shipSprite) shipSprite.tint = Renderer.damageTint(percent);
       const hpContainer = container.getChildByLabel('hp_container') as PIXI.Container;
       if (hpContainer) {
         const hpMask = hpContainer.getChildByLabel('hp_mask') as PIXI.Graphics;

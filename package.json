@@ -10,7 +10,9 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "profile": "node scripts/profile.mjs",
+    "test:e2e:preview": "node scripts/e2e-preview.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.1",
@@ -21,7 +23,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
-    "@playwright/test": "^1.63.0",
+    "@playwright/test": "^1.64.0",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
