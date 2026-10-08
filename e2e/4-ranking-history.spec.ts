@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures';
 
-test.describe('Ranking and History (TanStack + MSW)', () => {
+test.describe('Ranking e histórico', () => {
   test('should bypass document navigation while keeping API mocks active', async ({ page }) => {
     const navigationWarnings: string[] = [];
     page.on('console', (message) => {
@@ -17,7 +17,7 @@ test.describe('Ranking and History (TanStack + MSW)', () => {
     expect(navigationWarnings).toEqual([]);
   });
 
-  test('should render ranking pages with the matching fixture set', async ({ page }) => {
+  test('Consulta e paginação das abas Ranking e Match History, incluindo carregamento, vazio e erro.', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Ranking Hall of Fame' }).click();
     await expect(page.getByRole('row', { name: /Edward "Blackbeard" Teach/ })).toBeVisible();
@@ -86,7 +86,7 @@ test.describe('Ranking and History (TanStack + MSW)', () => {
     expect(statuses).toEqual([400, 500]);
   });
 
-  test('should show ranking fixtures and record a match successfully', async ({ page }) => {
+  test('Registro da partida, atualização das duas abas e recuperação de envio pendente após refresh.', async ({ page }) => {
     let rankingRequests = 0;
     page.on('request', (request) => {
       if (request.url().includes('/api/ranking')) rankingRequests++;
@@ -135,7 +135,7 @@ test.describe('Ranking and History (TanStack + MSW)', () => {
     await expect(page.getByText('150')).toBeVisible();
   });
 
-  test('should recover a timed-out registration without duplicating it', async ({ page }) => {
+  test('Reenvio após timeout sem duplicação e respostas atrasadas sem sobrescrever dados recentes.', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('pirate_mock_scenario', 'timeout_match_post'));
     await page.goto('/');
     await page.getByRole('button', { name: 'Start Battle' }).click();

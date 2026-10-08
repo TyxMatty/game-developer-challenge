@@ -56,9 +56,9 @@ Every spec uses a fresh Playwright page/context and a fixed simulation seed. Gam
 - **Spec:** `4-ranking-history.spec.ts`
 - **Description:** Tests recovery from a timed-out match submission without duplicating the persisted match. The `NetworkSimulator` also provides `Timeout on Match POST` and `Slow & Variable Latency` scenarios for manual verification.
 
-The latest full-suite totals are recorded in the committed HTML report at `playwright-report/index.html`. Run `npm run test:e2e` for the development server or `npm run test:e2e:preview` for the production build. Set `E2E_BASE_URL` to run against a deployed site.
+`playwright-report/index.html` uses Playwright's native report layout and contains 12 selected primary test results from Mobile Chrome (12 passed). The report for a full-suite run is generated in `test-results/playwright-report/`. Run `npm run test:e2e` for the development server or `npm run test:e2e:preview` for the production build. Set `E2E_BASE_URL` to run against a deployed site.
 
-The HTML report is saved and versioned at `playwright-report/index.html`. On a test failure, Playwright retains `trace.zip`, screenshots, and video in that test's `test-results/` directory; open a trace with `npx playwright show-trace test-results/<test-folder>/trace.zip`. Passing runs produce no failure trace files.
+On a test failure, Playwright retains `trace.zip`, screenshots, and video in that test's `test-results/` directory; open a trace with `npx playwright show-trace test-results/<test-folder>/trace.zip`. Passing runs produce no failure trace files.
 
 Traces captured while making the arena screenshot, cooldown, and mobile gameplay checks deterministic are preserved under `test-artifacts/failure-traces/`; they document the pre-fix failures:
 

@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures';
 
-test.describe('Options Navigation, Validation, and Persistence', () => {
+test.describe('Opções da partida', () => {
   test('should contain keyboard focus and close with Escape', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Game Options' }).click();
@@ -17,7 +17,7 @@ test.describe('Options Navigation, Validation, and Persistence', () => {
     await expect(page.getByRole('dialog')).toHaveCount(0);
   });
 
-  test('should navigate to options, validate inputs, save, and persist after refresh', async ({ page }) => {
+  test('Navegação, validação e persistência das opções.', async ({ page }) => {
     await page.goto('/');
     
     // Click Options in main menu

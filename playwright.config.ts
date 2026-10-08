@@ -14,7 +14,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1, // Avoid conflicts with MSW / local storage
   outputDir: './test-results',
-  reporter: [['html', { outputFolder: './playwright-report', open: 'never' }]],
+  reporter: [['html', { outputFolder: './test-results/playwright-report', open: 'never' }]],
   use: {
     baseURL,
     screenshot: 'only-on-failure',

@@ -1,9 +1,9 @@
 import { test, expect } from './fixtures';
 
-test.describe('Assets Loading and Retries', () => {
+test.describe('Carregamento de assets', () => {
   test.use({ serviceWorkers: 'block' });
 
-  test('should show loading, handle asset failure, and allow retry', async ({ page }) => {
+  test('Carregamento dos assets, falhas e nova tentativa.', async ({ page }) => {
     await page.goto('/');
     
     await page.route('**/assets/png/default/ships/ship_1.png', route => route.abort('failed'));

@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures';
 
-test.describe('Gameplay Mechanics', () => {
+test.describe('Mecânicas de jogo', () => {
   test('should reproduce seeded enemy spawns with the manually controlled simulation clock', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => {
@@ -112,7 +112,7 @@ test.describe('Gameplay Mechanics', () => {
     expect(await page.evaluate(() => (window as any).__SIMULATION__.score)).toBe(1);
   });
 
-  test('should spawn both enemy types with the standard distribution', async ({ page }) => {
+  test('Comportamentos de Chaser e Shooter e intervalo de spawn.', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Start Battle' }).click();
     await page.waitForFunction(() => (window as any).__SIMULATION__?.isRunning);
@@ -130,7 +130,7 @@ test.describe('Gameplay Mechanics', () => {
     }, { timeout: 5000 });
   });
 
-  test('should rotate, stay inside arena bounds, and stop at an island', async ({ page }) => {
+  test('Início de partida, movimento, rotação, limites da arena e colisão com ilhas.', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Start Battle' }).click();
     await page.waitForFunction(() => (window as any).__SIMULATION__?.isRunning);
@@ -220,7 +220,7 @@ test.describe('Gameplay Mechanics', () => {
     expect(await page.evaluate(() => (window as any).__SIMULATION__.score)).toBe(0);
   });
 
-  test('should respect the front cannon cooldown', async ({ page }) => {
+  test('Disparos frontal e lateral, dano, cooldown e pontuação sem duplicação.', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => {
       window.__GAME_TEST_CONFIG__ = { ...window.__GAME_TEST_CONFIG__, manualClock: true };
@@ -303,7 +303,7 @@ test.describe('Gameplay Mechanics', () => {
     expect(newMatchState.time).toBeLessThanOrEqual(60);
   });
 
-  test('should report timeout as the termination reason when the timer expires with a score', async ({ page }) => {
+  test('Encerramento por tempo e por morte, interrupção da simulação e reinício limpo.', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Start Battle' }).click();
     await page.waitForFunction(() => (window as any).__SIMULATION__?.isRunning);
@@ -379,7 +379,7 @@ test.describe('Gameplay Mechanics', () => {
     await expect(page.getByRole('button', { name: 'Start Battle' })).toBeVisible();
   });
 
-  test('should pause and resume correctly without skipping time', async ({ page }) => {
+  test('Pausa, perda de foco e retomada sem avanço indevido do cronômetro.', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Start Battle' }).click();
 
@@ -443,7 +443,7 @@ test.describe('Gameplay Mechanics', () => {
     expect(await page.evaluate(() => (window as any).__SIMULATION__.sessionTime)).toBeLessThan(pausedTime);
   });
 
-  test('should move from mobile touch controls', async ({ page }) => {
+  test('Abandono da partida, navegação repetida entre telas e controles de toque.', async ({ page }) => {
     if ((page.viewportSize()?.width ?? 1280) > 500) test.skip();
 
     await page.goto('/');

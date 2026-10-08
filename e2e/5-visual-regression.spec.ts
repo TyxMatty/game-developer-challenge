@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures';
 
-test.describe('Visual Regression', () => {
+test.describe('Regressão visual', () => {
   test('main menu baseline', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('button', { name: 'Start Battle' })).toBeVisible();
@@ -25,7 +25,7 @@ test.describe('Visual Regression', () => {
     await expect(page).toHaveScreenshot('stable-arena.png', { animations: 'disabled', caret: 'hide' });
   });
 
-  test('result screen baseline', async ({ page }) => {
+  test('Exibição do resultado e sua persistência após refresh.', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Start Battle' }).click();
     await page.waitForFunction(() => (window as any).__SIMULATION__?.isRunning);
