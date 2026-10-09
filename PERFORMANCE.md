@@ -17,7 +17,6 @@ Measured with `npm run build` followed by `npm run profile` (`scripts/profile.mj
 Caveats: the player was given effectively unlimited health so the 180 s match could be completed with scripted input; the single 72 ms outlier is the first-frame/initial load spike. Headless Chromium on the same machine is software-rendered and capped at ~31 FPS (p50 33.3 ms), so headed mode is the reference. GPU memory is not measured by the JS heap figure. Results are from one machine and are not a guarantee for low-end or mobile devices.
 
 The production build reports an entry chunk of ~757 kB (265 kB gzip) and a separate renderer chunk, so Pixi is split from the menu's initial bundle, although the entry still exceeds Vite's 500 kB warning threshold.
-
 ## Reproducible Measurement Procedure
 
 0. Quick path: `npm run build` then `npm run profile` (set `PROFILE_HEADED=1` for headed Chromium).
@@ -26,19 +25,18 @@ The production build reports an entry chunk of ~757 kB (265 kB gzip) and a separ
 3. Set session duration to 180 seconds and spawn interval to 2 seconds. Capture a full three-minute match using Chrome DevTools Performance. Record average FPS and the p95 frame interval, and inspect the `Simulation.update()` call cost.
 4. Record peak enemies, projectiles, and display objects from the same run. Keep the test actions and configuration identical when comparing revisions.
 5. Capture a heap snapshot at the main menu, then run five consistent start/play/exit cycles. Force garbage collection when available and capture a final snapshot. Compare retained objects and heap size; do not infer GPU texture release from JavaScript heap size alone.
-6. Save the raw trace, heap snapshots, and a short run log alongside this report before replacing the `Not measured` entries with results.
+6. Save the raw trace, heap snapshots, and a short run log alongside this report.
 
 ## Code-Level Considerations
 
-- `Simulation.update()` caps each frame delta at 0.1 seconds, which limits large catch-up updates after a stalled frame.
-- `resolvePhysics()` checks pairs among the player and enemies, making ship-to-ship checks quadratic in the number of ships. The simulation stops spawning after 50 active enemies, and the measured run peaked at 16 enemies and 17 projectiles.
-- `Renderer.render()` creates `Set` objects while synchronizing projectile and enemy IDs and redraws health-bar masks each ticker frame. The measured run (p95 frame interval 5.7 ms) showed no sign that these paths limit frame rate, but their cost was not profiled per function.
-- `GameCanvas` dynamically imports PixiJS for gameplay. `Renderer.destroy()` keeps global caches intact to avoid invalidating shared resources, and assets are not explicitly unloaded by URL. The five-cycle result is a JavaScript heap measurement after forced garbage collection; it does not cover GPU memory.
-- Mobile devices were not profiled, and the GPU model was not recorded in the environment row.
+- `Simulation.update()` caps each frame delta at 0.1 seconds. This limits large catch-up updates but does not itself prove a 60 FPS result.
+- `resolvePhysics()` checks pairs among the player and enemies, making ship-to-ship checks quadratic in the number of ships. The simulation currently stops spawning after 50 active enemies.
+- `Renderer.render()` creates sets while synchronizing projectile and enemy IDs and updates health-bar masks each ticker frame. These paths should be included in a measured performance trace before optimization claims are made.
+- `GameCanvas` dynamically imports PixiJS for gameplay. `Renderer.destroy()` keeps global caches intact to avoid invalidating shared resources; assets are not explicitly unloaded by URL. Memory conclusions require snapshots and should distinguish JavaScript heap from GPU resources.
 
 ## Extra Considerations
 
-- **Complexity:** `resolvePhysics()` in `Simulation.ts` is O(n²) in the number of ships. Spatial partitioning (for example a quadtree) would bring it closer to O(n log n), but with spawning capped at 50 enemies it was not needed; it would be the fix if the cap grew to thousands of enemies.
+- **O notation:** after further code reviewing and notations, the method `resolvePhysics()` in `Simulation.ts` runs in O(n²), there is a fix for it to run in O(n log n), which is using Spatial Pariotining(like, QuadTrees), which, but, as I've limited it to 50 enemy spawns, I didn't find the need to do it. If we did need to scale to 10.000 enemies, that would be the fix.
 
 ## Result Log
 

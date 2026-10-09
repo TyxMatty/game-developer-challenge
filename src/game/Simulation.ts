@@ -115,6 +115,7 @@ export class Simulation {
 
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
+    window.addEventListener('resize', this.onResize);
 
     if (typeof window !== 'undefined') {
       (window as any).__SIMULATION__ = this;
@@ -229,28 +230,36 @@ export class Simulation {
     this.isPaused = false;
     this.lastTime = performance.now();
 
-    // Island generator
-    if (this.islands.length === 0) {
-      // Two central islands flank the player's spawn, leaving a clear lane straight ahead,
-      // and are nudged to opposite vertical sides so the layout is diagonal.
-      const radius = 70;
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2;
-      const offsetX = Math.max(window.innerWidth * 0.25, radius + 50);
-      const offsetY = window.innerHeight * 0.12;
-
-      for (const side of [-1, 1]) {
-        this.islands.push({
-          id: this.nextIslandId++,
-          x: centerX + side * offsetX,
-          y: centerY + side * offsetY,
-          radius,
-        });
-      }
-    }
+    if (this.islands.length === 0) this.layoutIslands();
 
     this.loop(this.lastTime);
   }
+
+  // Two central islands flank the player's spawn, leaving a clear lane straight ahead,
+  // and are nudged to opposite vertical sides so the layout is diagonal.
+  private layoutIslands() {
+    const radius = 70;
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    const offsetX = Math.max(window.innerWidth * 0.25, radius + 50);
+    const offsetY = window.innerHeight * 0.12;
+
+    [-1, 1].forEach((side, index) => {
+      const x = centerX + side * offsetX;
+      const y = centerY + side * offsetY;
+      const existing = this.islands[index];
+      if (existing) {
+        existing.x = x;
+        existing.y = y;
+      } else {
+        this.islands.push({ id: this.nextIslandId++, x, y, radius });
+      }
+    });
+  }
+
+  private onResize = () => {
+    if (this.islands.length > 0) this.layoutIslands();
+  };
 
   stop() {
     this.isRunning = false;
@@ -261,6 +270,7 @@ export class Simulation {
     this.stop();
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
+    window.removeEventListener('resize', this.onResize);
     this.clearInputs();
     this.enemies.length = 0;
     this.projectiles.length = 0;

@@ -191,6 +191,10 @@ export class Renderer {
         this.islandSprites.push(g);
       }
     }
+    this.simulation.islands.forEach((island, index) => {
+      this.islandSprites[index].x = island.x;
+      this.islandSprites[index].y = island.y;
+    });
 
     // 1. Synchronize Player
     this.playerContainer.x = this.simulation.player.x;
