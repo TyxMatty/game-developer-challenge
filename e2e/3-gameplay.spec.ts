@@ -1,31 +1,6 @@
 import { test, expect } from './fixtures';
 
 test.describe('Mecânicas de jogo', () => {
-  test('should reposition islands when the viewport is resized', async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Start Battle' }).click();
-    await page.waitForFunction(() => window.__SIMULATION__?.isRunning);
-
-    const width = 900;
-    const height = 600;
-    await page.setViewportSize({ width, height });
-    await page.waitForFunction(() => window.innerWidth === 900 && window.innerHeight === 600);
-
-    const islands = await page.evaluate(() => {
-      const simulation = window.__SIMULATION__;
-      if (!simulation) throw new Error('Test simulation was not initialized.');
-      return simulation.islands.map(({ x, y }) => ({ x, y }));
-    });
-
-    const offsetX = Math.max(width * 0.25, 120);
-    const offsetY = height * 0.12;
-    expect(islands).toHaveLength(2);
-    expect(islands[0].x).toBeCloseTo(width / 2 - offsetX, 1);
-    expect(islands[0].y).toBeCloseTo(height / 2 - offsetY, 1);
-    expect(islands[1].x).toBeCloseTo(width / 2 + offsetX, 1);
-    expect(islands[1].y).toBeCloseTo(height / 2 + offsetY, 1);
-  });
-
   test('should reproduce seeded enemy spawns with the manually controlled simulation clock', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => {

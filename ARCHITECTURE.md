@@ -46,7 +46,7 @@ flowchart TD
 
 Player and enemy movement is clamped to the viewport and resolved against island circles. Projectiles advance by their configured speed and direction and are removed on expiration, arena exit, island impact, or a single successful hit. Front cannons create one projectile; each broadside creates three and uses its own cooldown. Defeating an enemy with a player projectile awards one point. Chaser collision damages the player and removes the Chaser without awarding a point.
 
-Enemy type ratios are normalized before selection. When both ratios are positive, the first two spawns guarantee one Chaser and one Shooter; subsequent spawns use the configured distribution. Spawn searches are bounded and skip candidates that are too close to the player or islands. Shooter firing is limited to the configured range. When the window is resized, `Simulation` recomputes the island positions from the new viewport size and the renderer follows them; ships are re-clamped to the arena by the next collision pass.
+Enemy type ratios are normalized before selection. When both ratios are positive, the first two spawns guarantee one Chaser and one Shooter; subsequent spawns use the configured distribution. Spawn searches are bounded and skip candidates that are too close to the player or islands. Shooter firing is limited to the configured range.
 
 ## Configuration and Persistence
 
