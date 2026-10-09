@@ -77,8 +77,8 @@ The repository includes `vercel.json`; deploy the `dist/` output on Vercel, Netl
 
 - [Architecture and design decisions](ARCHITECTURE.md)
 - [Performance measurements and procedure](PERFORMANCE.md)
-- [E2E coverage map](E2E_TESTS.md)
-- [To-Do list](To-Do-List.md)
+- [E2E coverage map](e2e/E2E_TESTS.md)
+- [Asset sources and licenses](ASSETS.md)
 
 ## Tools utilized in this project:
 
@@ -100,6 +100,5 @@ The repository includes `vercel.json`; deploy the `dist/` output on Vercel, Netl
 
 ## KNOWN BUGS
 
-- Changing resolution mid-session will change HUD, however, will not realocate the islands
 - Changing to mobile-mode mid session(unrealistic that a player would do) will not give mobile controls.
 

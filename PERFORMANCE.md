@@ -25,7 +25,7 @@ The production build reports an entry chunk of ~757 kB (265 kB gzip) and a separ
 3. Set session duration to 180 seconds and spawn interval to 2 seconds. Capture a full three-minute match using Chrome DevTools Performance. Record average FPS and the p95 frame interval, and inspect the `Simulation.update()` call cost.
 4. Record peak enemies, projectiles, and display objects from the same run. Keep the test actions and configuration identical when comparing revisions.
 5. Capture a heap snapshot at the main menu, then run five consistent start/play/exit cycles. Force garbage collection when available and capture a final snapshot. Compare retained objects and heap size; do not infer GPU texture release from JavaScript heap size alone.
-6. Save the raw trace, heap snapshots, and a short run log alongside this report before replacing the `Not measured` entries with results.
+6. Save the raw trace, heap snapshots, and a short run log alongside this report.
 
 ## Code-Level Considerations
 
